@@ -1,4 +1,4 @@
-package com.cravecart.backend.model;
+package com.cravecart.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
