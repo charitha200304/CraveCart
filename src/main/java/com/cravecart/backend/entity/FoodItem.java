@@ -21,6 +21,7 @@ public class FoodItem {
     private Double price;
     private String category; // e.g., Burgers, Beverages, Rice
     private String imageUrl;
+    private Integer stockQuantity;
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id")

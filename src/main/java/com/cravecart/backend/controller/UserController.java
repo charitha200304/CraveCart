@@ -1,10 +1,21 @@
 package com.cravecart.backend.controller;
 
+import com.cravecart.backend.dto.AuthResponse;
+import com.cravecart.backend.dto.LoginRequestDTO;
+import com.cravecart.backend.dto.UserRegistrationDTO;
 import com.cravecart.backend.entity.User;
-import com.cravecart.backend.repository.UserRepository;
+import com.cravecart.backend.service.JwtService;
+import com.cravecart.backend.service.UserService;
+import com.cravecart.backend.service.CustomUserDetailsService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -12,24 +23,55 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
+
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private JwtService jwtService;
 
-    @PostMapping("/addUser")
-    public User registerUser(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
-    }
-    @PostMapping("/login")
-    public String loginUser(@RequestBody User loginDetails) {
-        User user = userRepository.findByEmail(loginDetails.getEmail());
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
-        if (user != null) {
-            if (passwordEncoder.matches(loginDetails.getPassword(), user.getPassword())) {
-                return "Login Successful! Role: " + user.getRole();
-            }
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
+        try {
+            userService.registerUser(registrationDTO);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "User registered successfully!");
+            response.put("email", registrationDTO.getEmail());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Registration failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
-        return "Invalid Email or Password!";
+    }
+
+    /**
+     * Authenticates user and returns a JWT token with user details.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
+        User authenticatedUser = userService.validateUser(loginRequest.getEmail(), loginRequest.getPassword());
+
+        if (authenticatedUser != null) {
+            // Load UserDetails to pass to the token generator
+            UserDetails userDetails = userDetailsService.loadUserByUsername(authenticatedUser.getEmail());
+
+            // Fixes the type mismatch: Passing UserDetails instead of String
+            String token = jwtService.generateToken(userDetails);
+
+            AuthResponse response = AuthResponse.builder()
+                    .token(token)
+                    .email(authenticatedUser.getEmail())
+                    .role(authenticatedUser.getRole())
+                    .name(authenticatedUser.getName())
+                    .build();
+
+            return ResponseEntity.ok(response);
+        } else {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Invalid Email or Password!");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
     }
 }

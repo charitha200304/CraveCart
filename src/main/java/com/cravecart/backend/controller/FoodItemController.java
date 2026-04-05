@@ -1,8 +1,11 @@
 package com.cravecart.backend.controller;
 
-import com.cravecart.backend.entity.FoodItem;
-import com.cravecart.backend.repository.FoodItemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.cravecart.backend.dto.FoodItemDTO;
+import com.cravecart.backend.service.FoodItemService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,18 +13,34 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/food")
 @CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
 public class FoodItemController {
 
-    @Autowired
-    private FoodItemRepository foodItemRepository;
+    private final FoodItemService foodItemService;
 
     @PostMapping("/add")
-    public FoodItem addFoodItem(@RequestBody FoodItem foodItem) {
-        return foodItemRepository.save(foodItem);
+    public ResponseEntity<FoodItemDTO> addFoodItem(@Valid @RequestBody FoodItemDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(foodItemService.addFoodItem(dto));
     }
 
-    @GetMapping("/restaurant/{restaurantId}")
-    public List<FoodItem> getFoodByRestaurant(@PathVariable Long restaurantId) {
-        return foodItemRepository.findByRestaurantId(restaurantId);
+    @GetMapping("/all")
+    public ResponseEntity<List<FoodItemDTO>> getAllFood() {
+        return ResponseEntity.ok(foodItemService.getAllFoodItems());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<FoodItemDTO> getFoodById(@PathVariable Long id) {
+        return ResponseEntity.ok(foodItemService.getFoodItemById(id));
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<FoodItemDTO> updateFood(@PathVariable Long id, @Valid @RequestBody FoodItemDTO dto) {
+        return ResponseEntity.ok(foodItemService.updateFoodItem(id, dto));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteFood(@PathVariable Long id) {
+        foodItemService.deleteFoodItem(id);
+        return ResponseEntity.ok("Food item deleted successfully");
     }
 }

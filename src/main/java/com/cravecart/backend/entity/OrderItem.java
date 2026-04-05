@@ -2,6 +2,7 @@ package com.cravecart.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,8 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+    @Min(1)
     private Integer quantity = 0;
 
     private Double price = 0.0;

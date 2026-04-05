@@ -1,30 +1,36 @@
 package com.cravecart.backend.controller;
 
+import com.cravecart.backend.dto.OrderRequestDTO;
 import com.cravecart.backend.entity.Order;
 import com.cravecart.backend.service.OrderService;
-import com.cravecart.backend.repository.OrderRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
+@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderService orderService;
 
     @PostMapping("/place")
-    public Order placeOrder(@RequestBody Order order) {
-        return orderService.placeOrder(order);
+    public ResponseEntity<Order> placeOrder(@Valid @RequestBody OrderRequestDTO orderRequest) {
+        Order savedOrder = orderService.placeOrder(orderRequest);
+        return ResponseEntity.ok(savedOrder);
     }
 
     @GetMapping("/customer/{customerId}")
-    public List<Order> getOrdersByCustomer(@PathVariable Long customerId) {
-        return orderRepository.findByCustomerId(customerId);
+    public ResponseEntity<List<Order>> getCustomerOrders(@PathVariable Long customerId) {
+        return ResponseEntity.ok(orderService.getOrdersByCustomerId(customerId));
+    }
+
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<Order> updateStatus(@PathVariable Long orderId, @RequestParam String status) {
+        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
     }
 }

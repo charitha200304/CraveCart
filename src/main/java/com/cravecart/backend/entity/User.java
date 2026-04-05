@@ -1,13 +1,18 @@
 package com.cravecart.backend.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -16,15 +21,23 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Display name is required")
+    private String name;
+
+    @NotBlank(message = "Username is required")
     @Column(unique = true, nullable = false)
     private String username;
 
+    @NotBlank(message = "Email is required")
+    @Email(message = "Please provide a valid email address")
     @Column(unique = true, nullable = false)
     private String email;
 
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters long")
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private String role; // CUSTOMER, RESTAURANT_OWNER, RIDER, ADMIN
+    @NotBlank(message = "User role is required")
+    private String role; // Examples: CUSTOMER, RESTAURANT_OWNER, RIDER, ADMIN
 }
