@@ -2,11 +2,15 @@ package com.cravecart.backend.controller;
 
 import com.cravecart.backend.dto.FoodItemDTO;
 import com.cravecart.backend.service.FoodItemService;
-import jakarta.validation.Valid;
+import com.cravecart.backend.service.ImageUploadService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,9 +21,19 @@ import java.util.List;
 public class FoodItemController {
 
     private final FoodItemService foodItemService;
+    private final ImageUploadService imageUploadService;
 
-    @PostMapping("/add")
-    public ResponseEntity<FoodItemDTO> addFoodItem(@Valid @RequestBody FoodItemDTO dto) {
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FoodItemDTO> addFoodItem(
+            @RequestPart("food") String foodItemJson,
+            @RequestPart("file") MultipartFile file) throws JsonProcessingException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        FoodItemDTO dto = objectMapper.readValue(foodItemJson, FoodItemDTO.class);
+
+        String imageUrl = imageUploadService.uploadImage(file);
+        dto.setImageUrl(imageUrl);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(foodItemService.addFoodItem(dto));
     }
 
@@ -34,7 +48,7 @@ public class FoodItemController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<FoodItemDTO> updateFood(@PathVariable Long id, @Valid @RequestBody FoodItemDTO dto) {
+    public ResponseEntity<FoodItemDTO> updateFood(@PathVariable Long id, @RequestBody FoodItemDTO dto) {
         return ResponseEntity.ok(foodItemService.updateFoodItem(id, dto));
     }
 

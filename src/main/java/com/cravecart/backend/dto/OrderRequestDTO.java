@@ -17,4 +17,7 @@ public class OrderRequestDTO {
     private List<OrderItemDTO> items;
 
     private String deliveryAddress;
+
+    private Double totalAmount;
+    private String contactNumber;
 }
