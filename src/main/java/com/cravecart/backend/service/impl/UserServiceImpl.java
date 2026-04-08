@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * Concrete implementation of the UserService.
  * Handles the mapping between DTOs and Entities and interacts with the Repository.
@@ -37,11 +39,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User validateUser(String email, String password) {
-        User user = userRepository.findByEmail(email);
-
-        // Checking if the user exists and the provided password matches the stored hash
-        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return user;
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent() && passwordEncoder.matches(password, userOptional.get().getPassword())) {
+            return userOptional.get();
         }
         return null;
     }

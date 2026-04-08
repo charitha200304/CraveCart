@@ -20,12 +20,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + email);
-        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        // Spring Security hasRole() expects the prefix "ROLE_"
         List<SimpleGrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase())
         );
