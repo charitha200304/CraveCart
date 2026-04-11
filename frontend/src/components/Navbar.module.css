@@ -1,0 +1,214 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: relative;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--foreground);
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--primary);
+  color: white;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.logoText {
+  color: var(--foreground);
+}
+
+.navLinks {
+  display: none;
+  align-items: center;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .navLinks {
+    display: flex;
+  }
+}
+
+.navLink {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground-secondary);
+  transition: color 0.15s ease;
+}
+
+.navLink:hover {
+  color: var(--primary);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cartBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  color: var(--foreground-secondary);
+  transition: all 0.15s ease;
+}
+
+.cartBtn:hover {
+  background-color: var(--background-secondary);
+  color: var(--foreground);
+}
+
+.cartBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  background-color: var(--primary);
+  color: white;
+  border-radius: 9999px;
+}
+
+.userMenu {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .userMenu {
+    display: flex;
+  }
+}
+
+.userBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground-secondary);
+  border-radius: var(--radius);
+  transition: all 0.15s ease;
+}
+
+.userBtn:hover {
+  background-color: var(--background-secondary);
+  color: var(--foreground);
+}
+
+.userName {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logoutBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--foreground-muted);
+  border-radius: var(--radius);
+  transition: all 0.15s ease;
+}
+
+.logoutBtn:hover {
+  background-color: var(--error);
+  color: white;
+}
+
+.menuToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--foreground);
+}
+
+@media (min-width: 768px) {
+  .menuToggle {
+    display: none;
+  }
+}
+
+.mobileMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobileLink {
+  display: block;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground-secondary);
+  border-radius: var(--radius);
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.mobileLink:hover {
+  background-color: var(--background-secondary);
+  color: var(--foreground);
+}
