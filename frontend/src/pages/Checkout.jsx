@@ -1,245 +1,277 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { MapPin, Phone, CreditCard, Loader2, CheckCircle } from 'lucide-react';
-import axios from 'axios';
-import { API_ENDPOINTS } from '../config/api';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import styles from './Checkout.module.css';
+import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
+import { MapPin, CreditCard, Wallet, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Checkout() {
-  const [formData, setFormData] = useState({
-    deliveryAddress: '',
-    contactNumber: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  
-  const { cartItems, restaurantId, clearCart, getCartTotal } = useCart();
-  const { user, isAuthenticated } = useAuth();
+  const { cartItems, getCartTotal, clearCart, restaurantId } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
-
-  const total = getCartTotal();
-  const deliveryFee = 150;
-  const grandTotal = total + deliveryFee;
+  
+  const [loading, setLoading] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [formData, setFormData] = useState({
+    deliveryAddress: user?.address || '',
+    phone: user?.phone || '',
+    notes: '',
+    paymentMethod: 'cod'
+  });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setError('');
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    if (cartItems.length === 0) {
-      setError('Your cart is empty');
-      return;
-    }
-
-    if (!formData.deliveryAddress || !formData.contactNumber) {
-      setError('Please fill in all delivery details');
-      return;
-    }
-
     setLoading(true);
-    setError('');
 
     try {
       const orderData = {
-        customerId: 1, // In real app, get from auth context
+        customerId: user?.id,
         restaurantId: restaurantId,
         items: cartItems.map(item => ({
           foodItemId: item.id,
           quantity: item.quantity,
-          price: item.price,
+          price: item.price
         })),
+        totalAmount: getCartTotal() + 50,
         deliveryAddress: formData.deliveryAddress,
-        contactNumber: formData.contactNumber,
-        totalAmount: grandTotal,
+        phone: formData.phone,
+        notes: formData.notes,
+        paymentMethod: formData.paymentMethod
       };
 
       await axios.post(API_ENDPOINTS.PLACE_ORDER, orderData);
-      
-      setSuccess(true);
+      setOrderPlaced(true);
       clearCart();
       
       setTimeout(() => {
         navigate('/orders');
-      }, 2000);
+      }, 3000);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to place order. Please try again.');
+      console.error('Failed to place order:', error);
+      alert('Failed to place order. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (cartItems.length === 0 && !success) {
+  if (orderPlaced) {
     return (
-      <main className={styles.page}>
-        <div className="container">
-          <div className={styles.empty}>
-            <p>Your cart is empty</p>
-            <Link to="/restaurants" className="btn btn-primary">
-              Browse Restaurants
-            </Link>
+      <div className="min-h-screen bg-slate-bg flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center max-w-md"
+        >
+          <div className="w-24 h-24 bg-success-light rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-14 h-14 text-success" />
           </div>
-        </div>
-      </main>
+          <h2 className="text-3xl font-bold text-navy mb-4">Order Placed!</h2>
+          <p className="text-muted mb-8">
+            Your order has been placed successfully. You will be redirected to your orders page shortly.
+          </p>
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: '100%' }}
+              transition={{ duration: 3 }}
+              className="h-full bg-coral"
+            />
+          </div>
+        </motion.div>
+      </div>
     );
   }
 
-  if (success) {
-    return (
-      <main className={styles.page}>
-        <div className="container">
-          <div className={styles.success}>
-            <div className={styles.successIcon}>
-              <CheckCircle size={64} />
-            </div>
-            <h2 className={styles.successTitle}>Order Placed Successfully!</h2>
-            <p className={styles.successText}>
-              Your order has been placed and will be delivered soon.
-            </p>
-            <p className={styles.redirectText}>Redirecting to orders...</p>
-          </div>
-        </div>
-      </main>
-    );
+  if (cartItems.length === 0) {
+    navigate('/cart');
+    return null;
   }
 
   return (
-    <main className={styles.page}>
-      <div className="container">
-        <h1 className={styles.title}>Checkout</h1>
+    <div className="min-h-screen bg-slate-bg py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-navy mb-8">Checkout</h1>
 
-        <div className={styles.layout}>
-          {/* Checkout Form */}
-          <div className={styles.formSection}>
-            <form onSubmit={handleSubmit} className={styles.form}>
-              {error && (
-                <div className={styles.error}>
-                  {error}
-                </div>
-              )}
-
-              {!isAuthenticated && (
-                <div className={styles.authNotice}>
-                  <p>Please sign in to complete your order</p>
-                  <Link to="/login" className="btn btn-primary">
-                    Sign In
-                  </Link>
-                </div>
-              )}
-
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>
-                  <MapPin size={20} />
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Delivery Info */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Delivery Address */}
+              <div className="card-static p-6">
+                <h2 className="text-xl font-bold text-navy mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-coral" />
                   Delivery Address
                 </h2>
-                <textarea
-                  name="deliveryAddress"
-                  value={formData.deliveryAddress}
-                  onChange={handleChange}
-                  className={`input ${styles.textarea}`}
-                  placeholder="Enter your full delivery address..."
-                  rows={3}
-                  required
-                />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-navy mb-2">
+                      Full Address
+                    </label>
+                    <textarea
+                      name="deliveryAddress"
+                      value={formData.deliveryAddress}
+                      onChange={handleChange}
+                      placeholder="Enter your delivery address"
+                      rows={3}
+                      className="input-field resize-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-navy mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="+94 77 123 4567"
+                      className="input-field"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-navy mb-2">
+                      Delivery Notes (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      placeholder="Any special instructions?"
+                      className="input-field"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>
-                  <Phone size={20} />
-                  Contact Number
-                </h2>
-                <input
-                  type="tel"
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                  className="input"
-                  placeholder="Enter your phone number"
-                  required
-                />
-              </div>
-
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>
-                  <CreditCard size={20} />
+              {/* Payment Method */}
+              <div className="card-static p-6">
+                <h2 className="text-xl font-bold text-navy mb-4 flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-coral" />
                   Payment Method
                 </h2>
-                <div className={styles.paymentOption}>
-                  <input
-                    type="radio"
-                    id="cod"
-                    name="payment"
-                    value="cod"
-                    defaultChecked
-                  />
-                  <label htmlFor="cod">Cash on Delivery</label>
+                <div className="space-y-3">
+                  <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                    formData.paymentMethod === 'cod' ? 'border-coral bg-coral-light' : 'border-gray-200 hover:border-gray-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cod"
+                      checked={formData.paymentMethod === 'cod'}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.paymentMethod === 'cod' ? 'border-coral' : 'border-gray-300'
+                    }`}>
+                      {formData.paymentMethod === 'cod' && (
+                        <div className="w-3 h-3 rounded-full bg-coral" />
+                      )}
+                    </div>
+                    <Wallet className="w-6 h-6 text-muted" />
+                    <div>
+                      <p className="font-medium text-navy">Cash on Delivery</p>
+                      <p className="text-sm text-muted">Pay when you receive your order</p>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                    formData.paymentMethod === 'card' ? 'border-coral bg-coral-light' : 'border-gray-200 hover:border-gray-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="card"
+                      checked={formData.paymentMethod === 'card'}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.paymentMethod === 'card' ? 'border-coral' : 'border-gray-300'
+                    }`}>
+                      {formData.paymentMethod === 'card' && (
+                        <div className="w-3 h-3 rounded-full bg-coral" />
+                      )}
+                    </div>
+                    <CreditCard className="w-6 h-6 text-muted" />
+                    <div>
+                      <p className="font-medium text-navy">Card Payment</p>
+                      <p className="text-sm text-muted">Pay securely with your card</p>
+                    </div>
+                  </label>
                 </div>
               </div>
+            </div>
 
-              <button
-                type="submit"
-                className={`btn btn-primary ${styles.submitBtn}`}
-                disabled={loading || !isAuthenticated}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Placing Order...
-                  </>
-                ) : (
-                  `Place Order - Rs. ${grandTotal.toFixed(2)}`
-                )}
-              </button>
-            </form>
-          </div>
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="card-static p-6 sticky top-24">
+                <h2 className="text-xl font-bold text-navy mb-4">Order Summary</h2>
+                
+                <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3">
+                      <img
+                        src={item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=60&h=60&fit=crop'}
+                        alt={item.name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-navy text-sm truncate">{item.name}</p>
+                        <p className="text-muted text-xs">x{item.quantity}</p>
+                      </div>
+                      <p className="font-medium text-navy text-sm">
+                        Rs. {(item.price * item.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
 
-          {/* Order Summary */}
-          <div className={styles.summary}>
-            <h2 className={styles.summaryTitle}>Order Summary</h2>
-            
-            <div className={styles.items}>
-              {cartItems.map(item => (
-                <div key={item.id} className={styles.item}>
-                  <div className={styles.itemInfo}>
-                    <span className={styles.itemName}>
-                      {item.quantity}x {item.name}
-                    </span>
+                <div className="space-y-3 border-t border-gray-100 pt-4 mb-6">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Subtotal</span>
+                    <span className="text-navy">Rs. {getCartTotal().toFixed(2)}</span>
                   </div>
-                  <span className={styles.itemPrice}>
-                    Rs. {(item.price * item.quantity).toFixed(2)}
-                  </span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Delivery</span>
+                    <span className="text-success">Free</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Service Fee</span>
+                    <span className="text-navy">Rs. 50.00</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg pt-3 border-t border-gray-100">
+                    <span className="text-navy">Total</span>
+                    <span className="text-coral">Rs. {(getCartTotal() + 50).toFixed(2)}</span>
+                  </div>
                 </div>
-              ))}
-            </div>
 
-            <div className={styles.summaryRows}>
-              <div className={styles.summaryRow}>
-                <span>Subtotal</span>
-                <span>Rs. {total.toFixed(2)}</span>
-              </div>
-              <div className={styles.summaryRow}>
-                <span>Delivery Fee</span>
-                <span>Rs. {deliveryFee.toFixed(2)}</span>
-              </div>
-              <div className={`${styles.summaryRow} ${styles.total}`}>
-                <span>Total</span>
-                <span>Rs. {grandTotal.toFixed(2)}</span>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full btn-primary py-4 disabled:opacity-50"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                  ) : (
+                    'Place Order'
+                  )}
+                </button>
               </div>
             </div>
           </div>
-        </div>
+        </form>
       </div>
-    </main>
+    </div>
   );
 }
