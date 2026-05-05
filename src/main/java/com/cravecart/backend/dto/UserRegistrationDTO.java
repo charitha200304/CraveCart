@@ -8,31 +8,31 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Data Transfer Object for User Registration.
- * This class ensures that incoming data from the frontend meets the required criteria
- * before reaching the service layer or database.
- */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRegistrationDTO {
 
-    @NotBlank(message = "Display name is required and cannot be empty")
+    @NotBlank(message = "Display name is required")
     private String name;
 
-    @NotBlank(message = "Username is required for profile identification")
+    @NotBlank(message = "Username is required")
     private String username;
 
-    @NotBlank(message = "Email is a mandatory field")
-    @Email(message = "Please provide a valid email address format")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Please provide a valid email address")
     private String email;
 
-    @NotBlank(message = "Password cannot be blank")
-    @Size(min = 6, message = "Password must be at least 6 characters long for security")
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
 
-    @NotBlank(message = "User role must be specified (e.g., CUSTOMER, ADMIN)")
+    @NotBlank(message = "User role is required")
     private String role;
+
+    // Optional Restaurant details for Owners
+    private String restaurantName;
+    private String restaurantAddress;
+    private String restaurantImageUrl;
 }

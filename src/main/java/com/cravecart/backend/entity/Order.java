@@ -25,6 +25,8 @@ public class Order {
     private Double totalAmount = 0.0;
 
     private String status = "PENDING";
+    private String deliveryAddress;
+    private String contactNumber;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

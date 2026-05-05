@@ -47,6 +47,11 @@ public class FoodItemController {
         return ResponseEntity.ok(foodItemService.getFoodItemById(id));
     }
 
+    @GetMapping("/restaurant/{restaurantId}")
+    public ResponseEntity<List<FoodItemDTO>> getFoodByRestaurant(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(foodItemService.getFoodByRestaurant(restaurantId));
+    }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<FoodItemDTO> updateFood(@PathVariable Long id, @RequestBody FoodItemDTO dto) {
         return ResponseEntity.ok(foodItemService.updateFoodItem(id, dto));

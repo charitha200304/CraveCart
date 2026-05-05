@@ -24,6 +24,11 @@ public class OrderController {
         return ResponseEntity.ok(savedOrder);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.getOrderById(id));
+    }
+
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<Order>> getCustomerOrders(@PathVariable Long customerId) {
         return ResponseEntity.ok(orderService.getOrdersByCustomerId(customerId));
@@ -32,5 +37,10 @@ public class OrderController {
     @PatchMapping("/{orderId}/status")
     public ResponseEntity<Order> updateStatus(@PathVariable Long orderId, @RequestParam String status) {
         return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
+    }
+
+    @GetMapping("/restaurant/{restaurantId}")
+    public ResponseEntity<List<Order>> getRestaurantOrders(@PathVariable Long restaurantId) {
+        return ResponseEntity.ok(orderService.getOrdersByRestaurantId(restaurantId));
     }
 }

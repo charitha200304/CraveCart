@@ -40,4 +40,18 @@ public class User {
 
     @NotBlank(message = "User role is required")
     private String role; // Examples: CUSTOMER, RESTAURANT_OWNER, RIDER, ADMIN
+
+    private String address;
+    private String phoneNumber;
+
+    @Column(name = "enabled")
+    @Builder.Default
+    private Boolean enabled = false;
+
+    @Column(name = "approved")
+    @Builder.Default
+    private Boolean approved = false;
+
+    @Column(name = "verification_code", length = 64)
+    private String verificationCode;
 }

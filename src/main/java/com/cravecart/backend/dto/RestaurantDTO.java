@@ -16,5 +16,6 @@ public class RestaurantDTO {
     private String contactNumber;
     private String description;
     private String imageUrl;
+    private String category;
     private Long ownerId;
 }

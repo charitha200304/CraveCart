@@ -58,4 +58,9 @@ public class RestaurantController {
         restaurantService.deleteRestaurant(id);
         return ResponseEntity.ok("Restaurant deleted successfully");
     }
+
+    @GetMapping("/owner/{ownerId}")
+    public ResponseEntity<RestaurantDTO> getRestaurantByOwnerId(@PathVariable Long ownerId) {
+        return ResponseEntity.ok(restaurantService.getRestaurantByOwnerId(ownerId));
+    }
 }

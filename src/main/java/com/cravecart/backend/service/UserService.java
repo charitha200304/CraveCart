@@ -23,4 +23,13 @@ public interface UserService {
      * @return The User entity if valid, otherwise null.
      */
     User validateUser(String email, String password);
+
+    boolean verify(String verificationCode, String email);
+    User verifyAndGetUser(String verificationCode, String email);
+    
+    java.util.List<User> getPendingOwners();
+    void approveUser(Long id);
+
+    User getUserById(Long id);
+    User updateUser(Long id, User userDetails);
 }

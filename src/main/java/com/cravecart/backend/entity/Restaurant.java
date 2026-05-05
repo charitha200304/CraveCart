@@ -21,8 +21,9 @@ public class Restaurant {
     private String contactNumber;
     private String description;
     private String imageUrl;
+    private String category;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;
 }

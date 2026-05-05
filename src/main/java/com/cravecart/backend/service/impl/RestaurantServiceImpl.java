@@ -56,6 +56,13 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
+    public RestaurantDTO getRestaurantByOwnerId(Long ownerId) {
+        Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found for owner"));
+        return mapEntityToDto(restaurant);
+    }
+
+    @Override
     public void deleteRestaurant(Long id) {
         if (!restaurantRepository.existsById(id)) {
             throw new RuntimeException("Restaurant not found");
@@ -70,6 +77,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         entity.setContactNumber(dto.getContactNumber());
         entity.setDescription(dto.getDescription());
         entity.setImageUrl(dto.getImageUrl());
+        entity.setCategory(dto.getCategory());
     }
 
     private RestaurantDTO mapEntityToDto(Restaurant entity) {
@@ -80,6 +88,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                 .contactNumber(entity.getContactNumber())
                 .description(entity.getDescription())
                 .imageUrl(entity.getImageUrl())
+                .category(entity.getCategory())
                 .ownerId(entity.getOwner().getId())
                 .build();
     }

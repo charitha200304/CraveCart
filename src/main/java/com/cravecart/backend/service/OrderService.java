@@ -9,4 +9,5 @@ public interface OrderService {
     List<Order> getOrdersByCustomerId(Long customerId);
     List<Order> getOrdersByRestaurantId(Long restaurantId);
     Order updateOrderStatus(Long orderId, String status);
+    Order getOrderById(Long orderId);
 }

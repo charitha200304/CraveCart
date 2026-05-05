@@ -36,6 +36,8 @@ public class OrderServiceImpl implements OrderService {
         order.setRestaurant(restaurant);
         order.setOrderDate(new Date());
         order.setStatus("PENDING");
+        order.setDeliveryAddress(dto.getDeliveryAddress());
+        order.setContactNumber(dto.getContactNumber());
 
         double totalAmount = 0.0;
         List<OrderItem> orderItems = new ArrayList<>();
@@ -86,5 +88,10 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         order.setStatus(status.toUpperCase());
         return orderRepository.save(order);
+    }
+    @Override
+    public Order getOrderById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 }

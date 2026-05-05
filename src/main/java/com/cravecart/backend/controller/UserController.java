@@ -46,21 +46,16 @@ public class UserController {
         }
     }
 
-    /**
-     * Authenticates user and returns a JWT token with user details.
-     */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
         User authenticatedUser = userService.validateUser(loginRequest.getEmail(), loginRequest.getPassword());
 
         if (authenticatedUser != null) {
-            // Load UserDetails to pass to the token generator
             UserDetails userDetails = userDetailsService.loadUserByUsername(authenticatedUser.getEmail());
-
-            // Fixes the type mismatch: Passing UserDetails instead of String
             String token = jwtService.generateToken(userDetails);
 
             AuthResponse response = AuthResponse.builder()
+                    .id(authenticatedUser.getId())
                     .token(token)
                     .email(authenticatedUser.getEmail())
                     .role(authenticatedUser.getRole())
@@ -73,5 +68,52 @@ public class UserController {
             error.put("message", "Invalid Email or Password!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+        return ResponseEntity.ok(userService.updateUser(id, user));
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyUser(@RequestParam("code") String code, 
+                                      @RequestParam(value = "email", required = false) String email) {
+        User user = userService.verifyAndGetUser(code, email);
+        if (user != null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+            String token = jwtService.generateToken(userDetails);
+
+            AuthResponse response = AuthResponse.builder()
+                    .id(user.getId())
+                    .token(token)
+                    .email(user.getEmail())
+                    .role(user.getRole())
+                    .name(user.getName())
+                    .build();
+
+            return ResponseEntity.ok(response);
+        } else {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Verification failed.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    @GetMapping("/admin/pending-owners")
+    public ResponseEntity<?> getPendingOwners() {
+        return ResponseEntity.ok(userService.getPendingOwners());
+    }
+
+    @PostMapping("/admin/approve/{id}")
+    public ResponseEntity<?> approveOwner(@PathVariable Long id) {
+        userService.approveUser(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "User approved successfully!");
+        return ResponseEntity.ok(response);
     }
 }
