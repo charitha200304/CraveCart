@@ -16,16 +16,27 @@ export default function RestaurantDetail() {
   const { totalItems, totalPrice, restaurantId } = useCart();
 
   useEffect(() => {
-    Promise.all([
-      restaurantAPI.getById(id),
-      foodAPI.getAll(),
-    ]).then(([rRes, fRes]) => {
-      setRestaurant(rRes.data);
-      const all = fRes.data || [];
-      // filter foods belonging to this restaurant
-      const mine = all.filter(f => String(f.restaurantId) === String(id) || String(f.restaurant?.id) === String(id));
-      setFoods(mine.length > 0 ? mine : all.map(f => ({ ...f, restaurantId: id })));
-    }).catch(console.error).finally(() => setLoading(false));
+    const loadData = async () => {
+      try {
+        const [rRes, fRes] = await Promise.all([
+          restaurantAPI.getById(id),
+          foodAPI.getAll(),
+        ]);
+        
+        setRestaurant(rRes.data);
+        const all = fRes.data || [];
+        const mine = all.filter(f => String(f.restaurantId) === String(id) || String(f.restaurant?.id) === String(id));
+        setFoods(mine.length > 0 ? mine : all.map(f => ({ ...f, restaurantId: id })));
+      } catch (err) {
+        console.error("Failed to load restaurant details", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 10000); // Poll every 10s to keep menu live
+    return () => clearInterval(interval);
   }, [id]);
 
   const filtered = foods.filter(f =>

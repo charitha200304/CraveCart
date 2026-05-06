@@ -14,10 +14,20 @@ export default function Home() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    restaurantAPI.getAll()
-      .then(r => setRestaurants(r.data || []))
-      .catch(() => setRestaurants([]))
-      .finally(() => setLoading(false));
+    const loadRestaurants = async () => {
+      try {
+        const r = await restaurantAPI.getAll();
+        setRestaurants(r.data || []);
+      } catch (err) {
+        console.error("Failed to load restaurants", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRestaurants();
+    const interval = setInterval(loadRestaurants, 15000); // Poll every 15s
+    return () => clearInterval(interval);
   }, []);
 
   const filtered = restaurants.filter(r =>
