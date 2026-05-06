@@ -19,9 +19,15 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/place")
-    public ResponseEntity<Order> placeOrder(@Valid @RequestBody OrderRequestDTO orderRequest) {
-        Order savedOrder = orderService.placeOrder(orderRequest);
-        return ResponseEntity.ok(savedOrder);
+    public ResponseEntity<?> placeOrder(@Valid @RequestBody OrderRequestDTO orderRequest) {
+        try {
+            System.out.println("Placing order for customer: " + orderRequest.getCustomerId());
+            Order savedOrder = orderService.placeOrder(orderRequest);
+            return ResponseEntity.ok(savedOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
@@ -35,8 +41,11 @@ public class OrderController {
     }
 
     @PatchMapping("/{orderId}/status")
-    public ResponseEntity<Order> updateStatus(@PathVariable Long orderId, @RequestParam String status) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
+    public ResponseEntity<Order> updateStatus(
+            @PathVariable Long orderId, 
+            @RequestParam String status,
+            @RequestParam(required = false) String reason) {
+        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status, reason));
     }
 
     @GetMapping("/restaurant/{restaurantId}")

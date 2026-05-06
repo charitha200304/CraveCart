@@ -20,8 +20,10 @@ public class FoodItem {
     private String description;
     private Double price;
     private String category; // e.g., Burgers, Beverages, Rice
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String imageUrl;
-    private Integer stockQuantity;
+    private Integer stockQuantity = 0;
 
     @ManyToOne
     @JoinColumn(name = "restaurant_id")

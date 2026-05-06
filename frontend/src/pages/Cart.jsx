@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Trash2, ArrowLeft, ArrowRight, MapPin } from 'lucide-react';
+import { ShoppingCart, Trash2, ArrowLeft, ArrowRight, MapPin, CreditCard, Banknote } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { orderAPI } from '../utils/api';
+import LocationPicker from '../components/LocationPicker';
 
 export default function Cart() {
   const { items, removeItem, updateQty, clearCart, totalPrice, totalItems, restaurantId, restaurantName } = useCart();
@@ -12,25 +13,36 @@ export default function Cart() {
   const toast = useToast();
   const navigate = useNavigate();
   const [address, setAddress] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('CASH_ON_DELIVERY');
   const [placing, setPlacing] = useState(false);
 
   const delivery = 150;
   const total = totalPrice + delivery;
 
   const handlePlaceOrder = async () => {
-    if (!address.trim()) { toast.error('Please enter a delivery address'); return; }
+    if (!address.trim()) { toast.error('Please select a delivery location'); return; }
+    
+    if (paymentMethod === 'CARD') {
+      startPayHere();
+      return;
+    }
+
+    await executeOrderPlacement();
+  };
+
+  const executeOrderPlacement = async () => {
     setPlacing(true);
     try {
       const payload = {
-        customerId: user.id,
-        restaurantId,
+        customerId: Number(user.id),
+        restaurantId: Number(restaurantId),
         deliveryAddress: address,
         totalAmount: total,
-        orderItems: items.map(i => ({
-          foodId: i.id,
-          foodName: i.name,
-          quantity: i.qty,
-          price: i.price,
+        paymentMethod: paymentMethod,
+        contactNumber: user.phone || 'N/A',
+        items: items.map(i => ({
+          foodItemId: Number(i.id),
+          quantity: i.qty
         })),
       };
       await orderAPI.place(payload);
@@ -42,6 +54,45 @@ export default function Cart() {
     } finally {
       setPlacing(false);
     }
+  };
+
+  const startPayHere = () => {
+    // PayHere Sandbox Configuration
+    const payment = {
+      sandbox: true,
+      merchant_id: "1211149",       // Replace with your Merchant ID
+      return_url: window.location.href,
+      cancel_url: window.location.href,
+      notify_url: "http://sample.com/notify", // Backend notify endpoint
+      order_id: "ORD-" + Math.floor(Math.random() * 100000),
+      items: restaurantName + " Order",
+      amount: total,
+      currency: "LKR",
+      first_name: user.name?.split(' ')[0] || "Customer",
+      last_name: user.name?.split(' ')[1] || "User",
+      email: user.email,
+      phone: "0771234567",
+      address: address,
+      city: "Colombo",
+      country: "Sri Lanka",
+    };
+
+    window.payhere.onCompleted = function onCompleted(orderId) {
+      console.log("Payment completed. OrderID:" + orderId);
+      executeOrderPlacement();
+    };
+
+    window.payhere.onDismissed = function onDismissed() {
+      console.log("Payment dismissed");
+      toast.error('Payment was cancelled');
+    };
+
+    window.payhere.onError = function onError(error) {
+      console.log("Error:"  + error);
+      toast.error('Payment failed. Please try again.');
+    };
+
+    window.payhere.startPayment(payment);
   };
 
   if (items.length === 0) return (
@@ -67,7 +118,7 @@ export default function Cart() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '32px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'start' }}>
         {/* Items */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {items.map(item => (
@@ -105,7 +156,7 @@ export default function Cart() {
         </div>
 
         {/* Summary */}
-        <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', padding: '28px', position: 'sticky', top: '80px' }}>
+        <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border)', padding: '28px' }}>
           <h3 style={{ fontSize: '20px', marginBottom: '24px' }}>Order Summary</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
@@ -139,11 +190,66 @@ export default function Cart() {
 
           {/* Delivery address */}
           <div className="input-group" style={{ marginBottom: '20px' }}>
-            <label className="input-label">Delivery Address</label>
-            <div className="input-icon">
-              <MapPin size={17} className="icon" />
-              <textarea className="input" placeholder="Enter your full delivery address…" value={address}
-                onChange={e => setAddress(e.target.value)} style={{ minHeight: '80px', paddingLeft: '44px', paddingTop: '12px' }} />
+            <label className="input-label">Select Delivery Location</label>
+            <LocationPicker onAddressSelect={setAddress} />
+            
+            {address && (
+              <div style={{ 
+                background: 'var(--primary-bg)', padding: '12px', borderRadius: '12px',
+                border: '1px solid var(--primary-light)', fontSize: '13px', color: 'var(--primary-dark)',
+                display: 'flex', gap: '8px', alignItems: 'flex-start'
+              }}>
+                <MapPin size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <span>{address}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Payment Method */}
+          <div className="input-group" style={{ marginBottom: '24px' }}>
+            <label className="input-label">Payment Method</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div 
+                onClick={() => setPaymentMethod('CASH_ON_DELIVERY')}
+                style={{ 
+                  padding: '16px', borderRadius: '12px', border: `2px solid ${paymentMethod === 'CASH_ON_DELIVERY' ? 'var(--primary)' : 'var(--border)'}`,
+                  background: paymentMethod === 'CASH_ON_DELIVERY' ? 'var(--primary-bg)' : 'white',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ 
+                  width: '40px', height: '40px', borderRadius: '10px', background: paymentMethod === 'CASH_ON_DELIVERY' ? 'var(--primary)' : '#F1F5F9',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: paymentMethod === 'CASH_ON_DELIVERY' ? 'white' : '#64748B'
+                }}>
+                  <Banknote size={20} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>Cash on Delivery</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Pay when you receive food</div>
+                </div>
+                {paymentMethod === 'CASH_ON_DELIVERY' && <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} /></div>}
+              </div>
+
+              <div 
+                onClick={() => setPaymentMethod('CARD')}
+                style={{ 
+                  padding: '16px', borderRadius: '12px', border: `2px solid ${paymentMethod === 'CARD' ? 'var(--primary)' : 'var(--border)'}`,
+                  background: paymentMethod === 'CARD' ? 'var(--primary-bg)' : 'white',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ 
+                  width: '40px', height: '40px', borderRadius: '10px', background: paymentMethod === 'CARD' ? 'var(--primary)' : '#F1F5F9',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: paymentMethod === 'CARD' ? 'white' : '#64748B'
+                }}>
+                  <CreditCard size={20} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>Card Payment</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Pay securely via Card</div>
+                </div>
+                {paymentMethod === 'CARD' && <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} /></div>}
+              </div>
             </div>
           </div>
 

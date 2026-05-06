@@ -19,7 +19,6 @@ export default function Navbar() {
 
   const navLinks = isOwner ? [
     { to: '/dashboard', label: 'Dashboard', icon: Home },
-    { to: '/my-restaurant', label: 'My Restaurant', icon: ChefHat },
   ] : isAdmin ? [
     { to: '/admin', label: 'Admin', icon: Home },
   ] : [
@@ -84,16 +83,23 @@ export default function Navbar() {
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', marginBottom: '8px' }}>
                       <div style={{ fontWeight: 600, fontSize: '14px' }}>{user?.name}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{user?.email}</div>
-                      <div style={{ marginTop: '6px' }}>
-                        <span className="badge badge-primary" style={{ fontSize: '11px' }}>{user?.role}</span>
-                      </div>
                     </div>
-                    <button onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: 'var(--radius-sm)', color: 'var(--error)', fontSize: '14px', fontWeight: 500, transition: 'all var(--transition)' }}
-                      onMouseEnter={e => e.currentTarget.style.background='#FEF2F2'}
-                      onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-                      <LogOut size={16} />
-                      Sign Out
-                    </button>
+                    <div style={{ padding: '4px' }}>
+                      {isOwner && (
+                        <Link to="/dashboard?tab=settings" onClick={() => setDropdownOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500, transition: 'all var(--transition)' }}
+                          onMouseEnter={e => e.currentTarget.style.background='var(--primary-bg)'}
+                          onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                          <ChefHat size={16} color="var(--primary)" />
+                          Edit Profile
+                        </Link>
+                      )}
+                      <button onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: 'var(--radius-sm)', color: 'var(--error)', fontSize: '14px', fontWeight: 500, transition: 'all var(--transition)' }}
+                        onMouseEnter={e => e.currentTarget.style.background='#FEF2F2'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                        <LogOut size={16} />
+                        Sign Out
+                      </button>
+                    </div>
                   </div>
                 </>
               )}

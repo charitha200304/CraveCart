@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Phone, Eye, EyeOff, ChefHat, Store } from 'lucide-react';
+import { Mail, Lock, User, Phone, Eye, EyeOff, ChefHat, Store, Upload } from 'lucide-react';
 import { authAPI } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 
@@ -23,6 +23,21 @@ export default function OwnerRegister() {
   const navigate = useNavigate();
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Image is too large! Please pick a file under 2MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        set('restaurantImageUrl', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -151,11 +166,36 @@ export default function OwnerRegister() {
                 </div>
 
                 <div className="input-group">
-                  <label className="input-label">Restaurant Image URL</label>
-                  <div className="input-icon">
-                    <Store size={18} className="icon" />
-                    <input className="input" type="url" placeholder="https://image.com/restaurant.jpg" value={form.restaurantImageUrl}
-                      onChange={e => set('restaurantImageUrl', e.target.value)} />
+                  <label className="input-label">Restaurant Image</label>
+                  <div 
+                    onClick={() => document.getElementById('image-upload').click()}
+                    style={{ 
+                      width: '100%', 
+                      height: '140px', 
+                      border: '2px dashed var(--border)', 
+                      borderRadius: 'var(--radius-lg)', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      background: '#FAFAFA',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                  >
+                    {form.restaurantImageUrl ? (
+                      <img src={form.restaurantImageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <>
+                        <Upload size={24} color="var(--text-muted)" style={{ marginBottom: '8px' }} />
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Click to upload restaurant photo</span>
+                      </>
+                    )}
+                    <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
                   </div>
                 </div>
               </div>

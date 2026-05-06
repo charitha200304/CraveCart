@@ -41,7 +41,7 @@ export const restaurantAPI = {
 export const foodAPI = {
   getAll: () => api.get('/food/all'),
   getById: (id) => api.get(`/food/${id}`),
-  add: (formData) => api.post('/food/add', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  add: (data) => api.post('/food/add', data),
   update: (id, data) => api.put(`/food/update/${id}`, data),
   delete: (id) => api.delete(`/food/delete/${id}`),
 };
@@ -50,7 +50,8 @@ export const foodAPI = {
 export const orderAPI = {
   place: (data) => api.post('/orders/place', data),
   getByCustomer: (customerId) => api.get(`/orders/customer/${customerId}`),
-  updateStatus: (orderId, status) => api.patch(`/orders/${orderId}/status?status=${status}`),
+  getRestaurantOrders: (restaurantId) => api.get(`/orders/restaurant/${restaurantId}`),
+  updateStatus: (orderId, status, reason = '') => api.patch(`/orders/${orderId}/status?status=${status}&reason=${reason}`),
 };
 
 export default api;

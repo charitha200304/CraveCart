@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Store, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { authAPI } from '../utils/api';
 
 export default function OwnerLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login: saveSession } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -17,15 +18,18 @@ export default function OwnerLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const res = await authAPI.login({ email, password });
+      const user = res.data;
+
       if (user.role === 'RESTAURANT_OWNER' || user.role === 'ADMIN') {
+        saveSession(user, user.token);
         toast.success('Welcome back to your business dashboard!');
         navigate('/dashboard');
       } else {
         toast.error('This portal is for Restaurant Owners only. Please use the customer login.');
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Invalid credentials');
+      toast.error(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }

@@ -20,4 +20,5 @@ public class OrderRequestDTO {
 
     private Double totalAmount;
     private String contactNumber;
+    private String paymentMethod;
 }

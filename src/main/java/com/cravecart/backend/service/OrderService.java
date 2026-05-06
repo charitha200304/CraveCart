@@ -8,6 +8,6 @@ public interface OrderService {
     Order placeOrder(OrderRequestDTO orderRequest);
     List<Order> getOrdersByCustomerId(Long customerId);
     List<Order> getOrdersByRestaurantId(Long restaurantId);
-    Order updateOrderStatus(Long orderId, String status);
+    Order updateOrderStatus(Long orderId, String status, String reason);
     Order getOrderById(Long orderId);
 }

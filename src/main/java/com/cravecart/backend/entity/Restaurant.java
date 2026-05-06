@@ -20,6 +20,8 @@ public class Restaurant {
     private String address;
     private String contactNumber;
     private String description;
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String imageUrl;
     private String category;
 

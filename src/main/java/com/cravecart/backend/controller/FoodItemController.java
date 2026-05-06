@@ -2,15 +2,10 @@ package com.cravecart.backend.controller;
 
 import com.cravecart.backend.dto.FoodItemDTO;
 import com.cravecart.backend.service.FoodItemService;
-import com.cravecart.backend.service.ImageUploadService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,20 +16,16 @@ import java.util.List;
 public class FoodItemController {
 
     private final FoodItemService foodItemService;
-    private final ImageUploadService imageUploadService;
 
-    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<FoodItemDTO> addFoodItem(
-            @RequestPart("food") String foodItemJson,
-            @RequestPart("file") MultipartFile file) throws JsonProcessingException {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        FoodItemDTO dto = objectMapper.readValue(foodItemJson, FoodItemDTO.class);
-
-        String imageUrl = imageUploadService.uploadImage(file);
-        dto.setImageUrl(imageUrl);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(foodItemService.addFoodItem(dto));
+    @PostMapping("/add")
+    public ResponseEntity<?> addFoodItem(@RequestBody FoodItemDTO dto) {
+        try {
+            System.out.println("Adding food item: " + dto.getName() + " for restaurant: " + dto.getRestaurantId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(foodItemService.addFoodItem(dto));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
     }
 
     @GetMapping("/all")

@@ -27,6 +27,8 @@ public class Order {
     private String status = "PENDING";
     private String deliveryAddress;
     private String contactNumber;
+    private String paymentMethod; 
+    private String cancellationReason;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

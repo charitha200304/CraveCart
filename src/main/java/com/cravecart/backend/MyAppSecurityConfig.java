@@ -41,7 +41,7 @@ public class MyAppSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
 
                         .requestMatchers("/api/food/add").hasRole("RESTAURANT_OWNER")
-                        .requestMatchers("/api/orders/place").hasRole("CUSTOMER")
+                        .requestMatchers("/api/orders/place").authenticated()
 
                         .anyRequest().authenticated()
                 )

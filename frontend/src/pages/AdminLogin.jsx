@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ShieldCheck, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { authAPI } from '../utils/api';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login: saveSession } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -17,15 +18,18 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const user = await login(email, password);
+      const res = await authAPI.login({ email, password });
+      const user = res.data;
+      
       if (user.role === 'ADMIN') {
+        saveSession(user, user.token);
         toast.success('System Administrator authenticated.');
         navigate('/admin');
       } else {
         toast.error('Access Denied. This portal is restricted to System Administrators.');
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Invalid administrator credentials');
+      toast.error(err.response?.data?.message || 'Invalid administrator credentials');
     } finally {
       setLoading(false);
     }

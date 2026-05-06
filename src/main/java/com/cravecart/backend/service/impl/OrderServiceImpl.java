@@ -38,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus("PENDING");
         order.setDeliveryAddress(dto.getDeliveryAddress());
         order.setContactNumber(dto.getContactNumber());
+        order.setPaymentMethod(dto.getPaymentMethod());
 
         double totalAmount = 0.0;
         List<OrderItem> orderItems = new ArrayList<>();
@@ -47,12 +48,13 @@ public class OrderServiceImpl implements OrderService {
                     .orElseThrow(() -> new RuntimeException("Food item not found"));
 
             // Stock Validation
-            if (foodItem.getStockQuantity() < itemDto.getQuantity()) {
+            Integer stock = foodItem.getStockQuantity() != null ? foodItem.getStockQuantity() : 0;
+            if (stock < itemDto.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for: " + foodItem.getName());
             }
 
             // Update Stock
-            foodItem.setStockQuantity(foodItem.getStockQuantity() - itemDto.getQuantity());
+            foodItem.setStockQuantity(stock - itemDto.getQuantity());
             foodItemRepository.save(foodItem);
 
             // Create OrderItem Entity
@@ -83,10 +85,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrderStatus(Long orderId, String status) {
+    public Order updateOrderStatus(Long orderId, String status, String reason) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         order.setStatus(status.toUpperCase());
+        if (reason != null) {
+            order.setCancellationReason(reason);
+        }
         return orderRepository.save(order);
     }
     @Override
