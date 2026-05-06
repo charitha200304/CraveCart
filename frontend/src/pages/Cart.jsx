@@ -112,13 +112,13 @@ export default function Cart() {
   };
 
   const startPayHere = () => {
-    const merchantId = "1235611";
+    const merchantId = "1235611"; 
     const merchantSecret = "NDAyNDA3OTc1MDE4MzYxNTE5NTgxNDU3MzMzNjMzNTU5NTA4NTI1"; 
-    const orderId = "ORD_" + Date.now();
+    
+    const orderId = "ORD" + Math.floor(Math.random() * 100000);
     const amount = total.toFixed(2);
     const currency = "LKR";
 
-    // Generate Hash: Upper(MD5(merchant_id + order_id + amount + currency + Upper(MD5(merchant_secret))))
     const hashedSecret = md5(merchantSecret).toUpperCase();
     const hash = md5(merchantId + orderId + amount + currency + hashedSecret).toUpperCase();
 
@@ -129,18 +129,43 @@ export default function Cart() {
       cancel_url: window.location.origin + "/cart",
       notify_url: "http://sample.com/notify",
       order_id: orderId,
-      items: (restaurantName || "CraveCart") + " Order",
+      items: "CraveCart Order",
       amount: amount,
       currency: currency,
-      hash: hash,
-      first_name: user.name?.split(' ')[0] || "Customer",
-      last_name: user.name?.split(' ')[1] || "User",
-      email: user.email || "test@example.com",
+      hash: hash, 
+      first_name: user.name?.split(' ')[0] || "Valued",
+      last_name: user.name?.split(' ')[1] || "Customer",
+      email: user.email || "customer@cravecart.com",
       phone: user.phone || "0771234567",
       address: address || "Colombo, Sri Lanka",
       city: "Colombo",
       country: "Sri Lanka",
     };
+
+    // Ensure PayHere script is loaded before proceeding
+    if (!window.payhere) {
+      if (window.__payhereLoading) {
+        // Already attempting to load, just wait
+        toast.info('Waiting for PayHere to load...');
+        return;
+      }
+      window.__payhereLoading = true;
+      toast.info('Connecting to PayHere... 📡');
+      const script = document.createElement('script');
+      script.src = "https://www.payhere.lk/lib/payhere.js";
+      script.async = true;
+      script.onload = () => {
+        toast.success('PayHere Ready! 💳');
+        window.__payhereLoading = false;
+        startPayHere(); // retry now that script is loaded
+      };
+      script.onerror = () => {
+        toast.error('Could not load PayHere. Please check connection or disable blockers! 🚫');
+        window.__payhereLoading = false;
+      };
+      document.head.appendChild(script);
+      return;
+    }
 
     window.payhere.onCompleted = function onCompleted(orderId) {
       toast.success('Payment Successful! 💳');
@@ -234,16 +259,28 @@ export default function Cart() {
           <div className="divider" />
 
           {/* Order Type Toggle */}
-          <div style={{ display: 'flex', background: '#F1F5F9', padding: '4px', borderRadius: '14px', marginBottom: '24px', border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', background: '#F1F5F9', padding: '5px', borderRadius: '16px', marginBottom: '24px', border: '1px solid var(--border)' }}>
             <button 
               onClick={() => setOrderType('DELIVERY')}
-              style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: orderType === 'DELIVERY' ? 'white' : 'transparent', color: orderType === 'DELIVERY' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: orderType === 'DELIVERY' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s' }}
+              style={{ 
+                flex: 1, padding: '12px', borderRadius: '12px', border: 'none', 
+                background: orderType === 'DELIVERY' ? '#FF4500' : 'transparent', 
+                color: orderType === 'DELIVERY' ? 'white' : 'var(--text-secondary)', 
+                fontWeight: 800, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', 
+                boxShadow: orderType === 'DELIVERY' ? '0 4px 12px rgba(255, 69, 0, 0.2)' : 'none', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' 
+              }}
             >
               🚚 Delivery
             </button>
             <button 
               onClick={() => setOrderType('PICKUP')}
-              style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: orderType === 'PICKUP' ? 'white' : 'transparent', color: orderType === 'PICKUP' ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: orderType === 'PICKUP' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s' }}
+              style={{ 
+                flex: 1, padding: '12px', borderRadius: '12px', border: 'none', 
+                background: orderType === 'PICKUP' ? '#FF4500' : 'transparent', 
+                color: orderType === 'PICKUP' ? 'white' : 'var(--text-secondary)', 
+                fontWeight: 800, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', 
+                boxShadow: orderType === 'PICKUP' ? '0 4px 12px rgba(255, 69, 0, 0.2)' : 'none', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)' 
+              }}
             >
               🥡 Pick-Up
             </button>
@@ -391,7 +428,6 @@ export default function Cart() {
           div[style*="position: sticky"]{
             position:static!important;
           }
-        }
       `}</style>
     </div>
   );
