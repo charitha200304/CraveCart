@@ -32,4 +32,7 @@ public interface UserService {
 
     User getUserById(Long id);
     User updateUser(Long id, User userDetails);
+
+    void generatePasswordResetToken(String email) throws Exception;
+    void resetPassword(String token, String newPassword) throws Exception;
 }

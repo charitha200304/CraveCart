@@ -8,20 +8,35 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('cc_token');
-    const storedUser = localStorage.getItem('cc_user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    const localToken = localStorage.getItem('cc_token');
+    const localUser = localStorage.getItem('cc_user');
+    const sessionToken = sessionStorage.getItem('cc_token');
+    const sessionUser = sessionStorage.getItem('cc_user');
+
+    if (localToken && localUser) {
+      setToken(localToken);
+      setUser(JSON.parse(localUser));
+    } else if (sessionToken && sessionUser) {
+      setToken(sessionToken);
+      setUser(JSON.parse(sessionUser));
     }
     setLoading(false);
   }, []);
 
-  const login = (userData, authToken) => {
+  const login = (userData, authToken, rememberMe = false) => {
     setUser(userData);
     setToken(authToken);
-    localStorage.setItem('cc_token', authToken);
-    localStorage.setItem('cc_user', JSON.stringify(userData));
+    if (rememberMe) {
+      localStorage.setItem('cc_token', authToken);
+      localStorage.setItem('cc_user', JSON.stringify(userData));
+      sessionStorage.removeItem('cc_token');
+      sessionStorage.removeItem('cc_user');
+    } else {
+      sessionStorage.setItem('cc_token', authToken);
+      sessionStorage.setItem('cc_user', JSON.stringify(userData));
+      localStorage.removeItem('cc_token');
+      localStorage.removeItem('cc_user');
+    }
   };
 
   const logout = () => {
@@ -29,6 +44,8 @@ export function AuthProvider({ children }) {
     setToken(null);
     localStorage.removeItem('cc_token');
     localStorage.removeItem('cc_user');
+    sessionStorage.removeItem('cc_token');
+    sessionStorage.removeItem('cc_user');
   };
 
   const isAuthenticated = !!token;

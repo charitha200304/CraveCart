@@ -24,6 +24,9 @@ public class UserRegistrationDTO {
     @Email(message = "Please provide a valid email address")
     private String email;
 
+    @NotBlank(message = "Phone number is required")
+    private String phoneNumber;
+
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;

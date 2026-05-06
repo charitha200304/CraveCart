@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { MapPin, Phone, ArrowLeft, ShoppingCart, Search, UtensilsCrossed } from 'lucide-react';
 import { restaurantAPI, foodAPI } from '../utils/api';
 import FoodCard from '../components/FoodCard';
+import StarRating from '../components/StarRating';
+import ReviewSection from '../components/ReviewSection';
 import { useCart } from '../context/CartContext';
 
 const PH = 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&h=400&fit=crop';
@@ -15,25 +17,25 @@ export default function RestaurantDetail() {
   const [search, setSearch] = useState('');
   const { totalItems, totalPrice, restaurantId } = useCart();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [rRes, fRes] = await Promise.all([
-          restaurantAPI.getById(id),
-          foodAPI.getAll(),
-        ]);
-        
-        setRestaurant(rRes.data);
-        const all = fRes.data || [];
-        const mine = all.filter(f => String(f.restaurantId) === String(id) || String(f.restaurant?.id) === String(id));
-        setFoods(mine.length > 0 ? mine : all.map(f => ({ ...f, restaurantId: id })));
-      } catch (err) {
-        console.error("Failed to load restaurant details", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadData = async () => {
+    try {
+      const [rRes, fRes] = await Promise.all([
+        restaurantAPI.getById(id),
+        foodAPI.getAll(),
+      ]);
+      
+      setRestaurant(rRes.data);
+      const all = fRes.data || [];
+      const mine = all.filter(f => String(f.restaurantId) === String(id) || String(f.restaurant?.id) === String(id));
+      setFoods(mine.length > 0 ? mine : all.map(f => ({ ...f, restaurantId: id })));
+    } catch (err) {
+      console.error("Failed to load restaurant details", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadData();
     const interval = setInterval(loadData, 10000); // Poll every 10s to keep menu live
     return () => clearInterval(interval);
@@ -85,7 +87,12 @@ export default function RestaurantDetail() {
           </Link>
         </div>
         <div style={{ position: 'absolute', bottom: '24px', left: '24px', right: '24px' }}>
-          <h1 style={{ color: 'white', fontSize: 'clamp(24px, 4vw, 40px)', marginBottom: '12px' }}>{restaurant.name}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <h1 style={{ color: 'white', fontSize: 'clamp(24px, 4vw, 40px)', margin: 0 }}>{restaurant.name}</h1>
+            <div style={{ background: 'rgba(0,0,0,0.5)', padding: '6px 12px', borderRadius: '20px', backdropFilter: 'blur(4px)' }}>
+              <StarRating rating={restaurant.averageRating} count={restaurant.reviewCount} size={16} />
+            </div>
+          </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
             {restaurant.address && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'rgba(255,255,255,0.85)', fontSize: '14px' }}>
@@ -131,9 +138,19 @@ export default function RestaurantDetail() {
           </div>
         ) : (
           <div className="grid-auto">
-            {filtered.map(food => <FoodCard key={food.id} food={food} restaurant={restaurant} />)}
+            {filtered.map(food => <FoodCard key={food.id} food={food} restaurant={restaurant} onDataChanged={loadData} />)}
           </div>
         )}
+      </div>
+
+      {/* Restaurant Reviews */}
+      <div className="container" style={{ paddingTop: '40px' }}>
+        <hr style={{ border: 'none', borderTop: '1px solid var(--border)', marginBottom: '32px' }} />
+        <h2 style={{ fontSize: '24px', marginBottom: '8px' }}>What people are saying</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginBottom: '24px' }}>Reviews for {restaurant.name}</p>
+        <div style={{ maxWidth: '800px' }}>
+          <ReviewSection targetType="RESTAURANT" targetId={restaurant.id} onReviewAdded={loadData} />
+        </div>
       </div>
 
       {/* Sticky cart bar */}

@@ -39,6 +39,7 @@ public class MyAppSecurityConfig {
                         .requestMatchers("/api/user/**", "/login/**", "/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/food/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
 
                         .requestMatchers("/api/food/add").hasRole("RESTAURANT_OWNER")
                         .requestMatchers("/api/orders/place").authenticated()
@@ -50,6 +51,12 @@ public class MyAppSecurityConfig {
                                 .userService(customOAuth2UserService)
                         )
                         .successHandler(oAuth2LoginSuccessHandler)
+                )
+                .exceptionHandling(exception -> exception
+                        .defaultAuthenticationEntryPointFor(
+                                new org.springframework.security.web.authentication.HttpStatusEntryPoint(org.springframework.http.HttpStatus.UNAUTHORIZED),
+                                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**")
+                        )
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider())

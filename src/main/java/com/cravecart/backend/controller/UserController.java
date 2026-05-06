@@ -52,7 +52,8 @@ public class UserController {
 
         if (authenticatedUser != null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(authenticatedUser.getEmail());
-            String token = jwtService.generateToken(userDetails);
+            // Pass rememberMe flag: true = 30-day token, false = 24-hour token
+            String token = jwtService.generateToken(userDetails, loginRequest.isRememberMe());
 
             AuthResponse response = AuthResponse.builder()
                     .id(authenticatedUser.getId())
@@ -115,5 +116,33 @@ public class UserController {
         Map<String, String> response = new HashMap<>();
         response.put("message", "User approved successfully!");
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody com.cravecart.backend.dto.ForgotPasswordRequestDTO request) {
+        try {
+            userService.generatePasswordResetToken(request.getEmail());
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "If an account with that email exists, a password reset link has been sent.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody com.cravecart.backend.dto.ResetPasswordRequestDTO request) {
+        try {
+            userService.resetPassword(request.getToken(), request.getNewPassword());
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password has been reset successfully. You can now login.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
     }
 }

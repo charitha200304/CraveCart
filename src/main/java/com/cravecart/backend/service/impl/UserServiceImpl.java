@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
                 .name(registrationDTO.getName())
                 .username(registrationDTO.getUsername())
                 .email(registrationDTO.getEmail())
+                .phoneNumber(registrationDTO.getPhoneNumber())
                 .password(passwordEncoder.encode(registrationDTO.getPassword()))
                 .role(registrationDTO.getRole())
                 .verificationCode(randomCode)
@@ -121,5 +122,41 @@ public class UserServiceImpl implements UserService {
         user.setAddress(userDetails.getAddress());
         user.setPhoneNumber(userDetails.getPhoneNumber());
         return userRepository.save(user);
+    }
+
+    @Override
+    public void generatePasswordResetToken(String email) throws Exception {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            String token = UUID.randomUUID().toString();
+            user.setResetPasswordToken(token);
+            user.setResetPasswordTokenExpiry(java.time.LocalDateTime.now().plusHours(1));
+            userRepository.save(user);
+
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), token);
+        } else {
+            // We throw a generic exception or do nothing to prevent email enumeration,
+            // but for UX, sometimes it's okay to throw if needed. Let's throw for now.
+            throw new RuntimeException("User not found with this email");
+        }
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) throws Exception {
+        Optional<User> userOptional = userRepository.findByResetPasswordToken(token);
+        if (!userOptional.isPresent()) {
+            throw new RuntimeException("Invalid token");
+        }
+
+        User user = userOptional.get();
+        if (user.getResetPasswordTokenExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new RuntimeException("Token has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordTokenExpiry(null);
+        userRepository.save(user);
     }
 }

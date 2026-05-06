@@ -31,4 +31,7 @@ public class FoodItemDTO {
 
     @NotNull(message = "Restaurant ID is required")
     private Long restaurantId;
+
+    private Double averageRating;
+    private Integer reviewCount;
 }

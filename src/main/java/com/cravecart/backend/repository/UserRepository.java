@@ -11,5 +11,6 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     User findByVerificationCode(String verificationCode);
+    Optional<User> findByResetPasswordToken(String resetPasswordToken);
     List<User> findByRoleAndApproved(String role, boolean approved);
 }

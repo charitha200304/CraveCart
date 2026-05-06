@@ -30,10 +30,24 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
+    // Token expiry constants
+    private static final long SESSION_EXPIRY_MS    = 1000L * 60 * 60 * 24;       // 24 hours
+    private static final long REMEMBER_ME_EXPIRY_MS = 1000L * 60 * 60 * 24 * 30; // 30 days
+
     /**
-     * Generates a token using UserDetails to include roles and authorities.
+     * Generates a standard short-lived token (24 hours).
+     * Kept for backward compatibility (email verification flow, OAuth2, etc.)
      */
     public String generateToken(UserDetails userDetails) {
+        return generateToken(userDetails, false);
+    }
+
+    /**
+     * Generates a token with expiry based on the rememberMe flag.
+     * rememberMe=true  → 30-day token (stored in localStorage on frontend)
+     * rememberMe=false → 24-hour token (stored in sessionStorage on frontend)
+     */
+    public String generateToken(UserDetails userDetails, boolean rememberMe) {
         Map<String, Object> claims = new HashMap<>();
 
         // Adding roles to JWT claims for role-based authorization
@@ -41,11 +55,13 @@ public class JwtService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
 
+        long expiryMs = rememberMe ? REMEMBER_ME_EXPIRY_MS : SESSION_EXPIRY_MS;
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + expiryMs))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

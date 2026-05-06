@@ -22,4 +22,10 @@ public class LoginRequestDTO {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    /**
+     * If true, generates a long-lived token (30 days).
+     * If false (default), generates a short-lived token (24 hours / session).
+     */
+    private boolean rememberMe = false;
 }

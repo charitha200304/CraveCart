@@ -22,7 +22,7 @@ export default function Register() {
     
     setLoading(true);
     try {
-      await authAPI.register({ ...form, username: form.email });
+      await authAPI.register({ ...form, username: form.email, phoneNumber: form.phone });
       setIsSuccess(true);
       toast.success('Registration successful! Please check your email for verification.');
     } catch (err) {
@@ -83,6 +83,15 @@ export default function Register() {
                 <Mail size={18} className="icon" />
                 <input className="input" type="email" placeholder="you@example.com" value={form.email}
                   onChange={e => set('email', e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">Phone Number</label>
+              <div className="input-icon">
+                <Phone size={18} className="icon" />
+                <input className="input" type="tel" placeholder="Your phone number" value={form.phone}
+                  onChange={e => set('phone', e.target.value)} required />
               </div>
             </div>
 

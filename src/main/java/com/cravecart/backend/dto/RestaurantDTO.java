@@ -18,4 +18,6 @@ public class RestaurantDTO {
     private String imageUrl;
     private String category;
     private Long ownerId;
+    private Double averageRating;
+    private Integer reviewCount;
 }

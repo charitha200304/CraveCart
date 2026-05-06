@@ -90,6 +90,8 @@ public class FoodItemServiceImpl implements FoodItemService {
                 .imageUrl(entity.getImageUrl())
                 .stockQuantity(entity.getStockQuantity())
                 .restaurantId(entity.getRestaurant().getId())
+                .averageRating(entity.getAverageRating())
+                .reviewCount(entity.getReviewCount())
                 .build();
     }
 }

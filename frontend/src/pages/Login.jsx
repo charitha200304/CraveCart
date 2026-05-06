@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '', rememberMe: false });
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -19,7 +19,7 @@ export default function Login() {
     try {
       const res = await authAPI.login(form);
       const { token, user, role, name, email, id } = res.data;
-      login({ id, name, email, role }, token);
+      login({ id, name, email, role }, token, form.rememberMe);
       toast.success(`Welcome back, ${name || 'there'}!`);
       if (role === 'RESTAURANT_OWNER') navigate('/dashboard');
       else if (role === 'ADMIN') navigate('/admin');
@@ -68,6 +68,21 @@ export default function Login() {
                   {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <input 
+                  type="checkbox" 
+                  checked={form.rememberMe}
+                  onChange={(e) => setForm(p => ({ ...p, rememberMe: e.target.checked }))}
+                  style={{ accentColor: 'var(--primary)', width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Remember me
+              </label>
+              <Link to="/forgot-password" style={{ fontSize: '14px', color: 'var(--primary)', fontWeight: 500, textDecoration: 'none' }}>
+                Forgot password?
+              </Link>
             </div>
 
             <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: '4px' }}>

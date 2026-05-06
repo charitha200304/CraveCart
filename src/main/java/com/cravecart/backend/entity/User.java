@@ -54,4 +54,10 @@ public class User {
 
     @Column(name = "verification_code", length = 64)
     private String verificationCode;
+
+    @Column(name = "reset_password_token", length = 64)
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_token_expiry")
+    private java.time.LocalDateTime resetPasswordTokenExpiry;
 }

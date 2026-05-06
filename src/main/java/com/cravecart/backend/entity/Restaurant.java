@@ -28,4 +28,10 @@ public class Restaurant {
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;
+
+    @Column(name = "average_rating")
+    private Double averageRating = 0.0;
+
+    @Column(name = "review_count")
+    private Integer reviewCount = 0;
 }

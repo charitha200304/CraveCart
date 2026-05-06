@@ -20,6 +20,8 @@ import OAuthRedirect from './pages/OAuthRedirect';
 import VerifyEmail from './pages/VerifyEmail';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function Layout({ children, noFooter }) {
   return (
@@ -43,6 +45,8 @@ export default function App() {
               <Route path="/owner/login" element={<OwnerLogin />} />
               <Route path="/owner/register" element={<OwnerRegister />} />
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/oauth-redirect" element={<OAuthRedirect />} />
               <Route path="/verify" element={<VerifyEmail />} />
               <Route path="/" element={<Layout><Home /></Layout>} />

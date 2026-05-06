@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, Edit3, Trash2, Package, ChefHat, Image, X, 
   DollarSign, TrendingUp, ShoppingBag, List, LayoutDashboard,
-  Upload, CheckCircle
+  Moon, Sun
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -62,8 +62,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [lastOrderCount, setLastOrderCount] = useState(0);
   const [newOrderAlert, setNewOrderAlert] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dashboardDarkMode') === 'true');
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem('dashboardDarkMode', darkMode);
+  }, [darkMode]);
 
   // Live Polling for Orders
   useEffect(() => {
@@ -289,14 +294,26 @@ export default function Dashboard() {
   if (loading) return <div className="container" style={{ padding: '100px', textAlign: 'center' }}><span className="spinner" /></div>;
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+    <div className={darkMode ? 'dark-dashboard' : ''} style={{ background: 'var(--bg)', minHeight: '100vh', color: 'var(--text-primary)', transition: 'background 0.3s, color 0.3s' }}>
       {/* Header Section */}
-      <div style={{ background: 'white', borderBottom: '1px solid var(--border)', padding: '32px 0' }}>
+      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '32px 0', transition: 'background 0.3s' }}>
         <div className="container">
           <div className="flex-resp">
-            <div>
-              <h1 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em' }}>Dashboard</h1>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Welcome back, {user?.name}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div>
+                <h1 style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.02em' }}>Dashboard</h1>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Welcome back, {user?.name}</p>
+              </div>
+              <button 
+                onClick={() => setDarkMode(!darkMode)}
+                style={{ 
+                  background: 'var(--border-light)', border: 'none', padding: '8px', 
+                  borderRadius: '50%', cursor: 'pointer', color: 'var(--text-primary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
             </div>
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }} className="no-scrollbar">
               <button className={`tab-btn ${tab === 'overview' ? 'active' : ''}`} onClick={() => setTab('overview')}>
@@ -332,7 +349,7 @@ export default function Dashboard() {
 
       <div className="container" style={{ paddingTop: '32px', paddingBottom: '100px' }}>
         {tab === 'settings' && (
-          <div style={{ maxWidth: '600px', margin: '0 auto', background: 'white', padding: '40px', borderRadius: '24px', border: '1px solid var(--border)' }}>
+          <div style={{ maxWidth: '600px', margin: '0 auto', background: 'var(--surface)', padding: '40px', borderRadius: '24px', border: '1px solid var(--border)' }}>
             <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px' }}>Restaurant Settings</h2>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>Update your restaurant's public profile</p>
             
@@ -385,9 +402,9 @@ export default function Dashboard() {
                 <div 
                   onClick={() => document.getElementById('res-img-input').click()}
                   style={{ 
-                    width: '100%', height: '160px', border: '2px dashed #E2E8F0', borderRadius: '16px',
+                    width: '100%', height: '160px', border: '2px dashed var(--border)', borderRadius: '16px',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', overflow: 'hidden', background: '#F8FAFC', position: 'relative'
+                    cursor: 'pointer', overflow: 'hidden', background: 'var(--surface-hover)', position: 'relative'
                   }}
                 >
                   {rForm.imageUrl ? (
@@ -437,7 +454,7 @@ export default function Dashboard() {
 
             {/* Analytics Chart */}
             <div style={{ 
-              background: 'white', 
+              background: 'var(--surface)', 
               padding: '32px', 
               borderRadius: 'var(--radius-xl)', 
               border: '1px solid var(--border)', 
@@ -532,7 +549,7 @@ export default function Dashboard() {
                   />
                 ))
               ) : (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px', background: 'white', borderRadius: '24px', border: '1px dashed var(--border)' }}>
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px', background: 'var(--surface)', borderRadius: '24px', border: '1px dashed var(--border)' }}>
                   <ShoppingBag size={48} color="var(--border)" style={{ marginBottom: '16px' }} />
                   <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-secondary)' }}>No orders yet</h3>
                   <p style={{ color: 'var(--text-muted)' }}>Orders from customers will appear here</p>
@@ -613,9 +630,9 @@ export default function Dashboard() {
               <div 
                 onClick={() => document.getElementById('food-img-input').click()}
                 style={{ 
-                  width: '100%', height: '120px', border: '2px dashed #E2E8F0', borderRadius: '12px',
+                  width: '100%', height: '120px', border: '2px dashed var(--border)', borderRadius: '12px',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', overflow: 'hidden', background: '#F8FAFC'
+                  cursor: 'pointer', overflow: 'hidden', background: 'var(--surface-hover)'
                 }}
               >
                 {fForm.imageUrl ? (
@@ -793,6 +810,43 @@ export default function Dashboard() {
         }
         .btn-danger-outline:hover {
           background: #FEF2F2;
+        }
+        
+        /* Dark Mode Overrides for Dashboard */
+        .dark-dashboard {
+          --bg: #0F172A;
+          --surface: #1E293B;
+          --surface-hover: #334155;
+          --text-primary: #F8FAFC;
+          --text-secondary: #94A3B8;
+          --border: #334155;
+          --border-light: #1E293B;
+          --primary-bg: rgba(255, 69, 0, 0.1);
+        }
+        
+        .dark-dashboard .card-stat,
+        .dark-dashboard .food-manage-card {
+          background: var(--surface);
+          border-color: var(--border);
+        }
+        
+        .dark-dashboard .food-price-badge {
+          background: var(--surface);
+          color: var(--primary);
+        }
+        
+        .dark-dashboard .input {
+          background: var(--bg);
+          color: var(--text-primary);
+          border-color: var(--border);
+        }
+        
+        .dark-dashboard .modal {
+          background: var(--surface);
+        }
+        
+        .dark-dashboard .tab-btn.active {
+          background: var(--primary-bg);
         }
       `}</style>
     </div>
