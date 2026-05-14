@@ -56,7 +56,7 @@ public class EmailService {
 
     private void sendApiEmail(String to, String subject, String html) {
         try {
-            String apiKey = System.getenv().getOrDefault("RESEND_API_KEY", "re_P4XogzFE_CrYVoJ6mX5y5ePNYJ5WihrsE");
+            String apiKey = System.getenv().getOrDefault("RESEND_API_KEY", "re_honSdpa9_9iuLy67eAMJV2bBywZS9wEQ1");
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
