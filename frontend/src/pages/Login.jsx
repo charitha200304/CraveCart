@@ -111,7 +111,7 @@ export default function Login() {
           </div>
 
           <a 
-            href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8080'}/oauth2/authorization/google`}
+            href={`${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://cravecart-werf.onrender.com'}/oauth2/authorization/google`}
             className="btn btn-outline" 
             style={{ 
               width: '100%', 
