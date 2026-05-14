@@ -27,7 +27,13 @@ export default function OAuthRedirect() {
       return;
     }
 
-    login({ id: id ? Number(id) : null, name: name || email, email, role }, token);
+    login({ 
+      id: id ? Number(id) : null, 
+      name: name || email, 
+      email, 
+      role,
+      isGoogle: true 
+    }, token);
     toast.success(`Welcome, ${name || email}! 🎉`);
 
     if (role === 'RESTAURANT_OWNER') navigate('/dashboard', { replace: true });

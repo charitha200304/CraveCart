@@ -22,6 +22,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Profile from './pages/Profile';
 
 function Layout({ children, noFooter }) {
   return (
@@ -63,6 +64,13 @@ export default function App() {
                 <Layout>
                   <ProtectedRoute roles={['CUSTOMER']}>
                     <Orders />
+                  </ProtectedRoute>
+                </Layout>
+              } />
+              <Route path="/profile" element={
+                <Layout>
+                  <ProtectedRoute roles={['CUSTOMER']}>
+                    <Profile />
                   </ProtectedRoute>
                 </Layout>
               } />

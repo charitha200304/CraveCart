@@ -3,9 +3,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Eye, EyeOff, ChefHat } from 'lucide-react';
 import { authAPI } from '../utils/api';
 import { useToast } from '../context/ToastContext';
+import FormField from '../components/FormField';
+import { validatePassword } from '../utils/validation';
 
 export default function ResetPassword() {
   const [form, setForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [errors, setErrors] = useState({});
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState(null);
@@ -15,35 +18,40 @@ export default function ResetPassword() {
   const location = useLocation();
 
   useEffect(() => {
-    // Extract token from URL query parameters: /reset-password?token=xyz
     const params = new URLSearchParams(location.search);
     const urlToken = params.get('token');
     if (!urlToken) {
-      toast.error('Invalid or missing password reset token.');
+      toast.error('Invalid reset token.');
       navigate('/login');
     } else {
       setToken(urlToken);
     }
   }, [location, navigate, toast]);
 
+  const set = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    if (errors[k]) setErrors(p => ({ ...p, [k]: null }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!validatePassword(form.newPassword)) newErrors.newPassword = 'Min. 6 characters';
+    if (form.newPassword !== form.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters long.');
-      return;
-    }
-    if (form.newPassword !== form.confirmPassword) {
-      toast.error('Passwords do not match!');
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
     try {
       await authAPI.resetPassword({ token, newPassword: form.newPassword });
-      toast.success('Password has been reset successfully! You can now log in.');
+      toast.success('Password reset successful! Please log in.');
       navigate('/login');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to reset password. Token may be expired.');
+      toast.error(err.response?.data?.error || 'Failed to reset password.');
     } finally {
       setLoading(false);
     }
@@ -65,34 +73,26 @@ export default function ResetPassword() {
         </div>
 
         <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '36px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="input-group">
-              <label className="input-label">New Password</label>
-              <div className="input-icon">
-                <Lock size={18} className="icon" />
-                <input className="input" type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters"
-                  value={form.newPassword} onChange={e => setForm(p => ({ ...p, newPassword: e.target.value }))} required
-                  style={{ paddingRight: '44px' }} />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <FormField label="New Password" icon={Lock} error={errors.newPassword}>
+              <input className={`input ${errors.newPassword ? 'input-error' : ''}`} type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters"
+                value={form.newPassword} onChange={e => set('newPassword', e.target.value)}
+                style={{ paddingRight: '44px' }} />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </FormField>
 
-            <div className="input-group">
-              <label className="input-label">Confirm New Password</label>
-              <div className="input-icon">
-                <Lock size={18} className="icon" />
-                <input className="input" type={showPw ? 'text' : 'password'} placeholder="Retype new password"
-                  value={form.confirmPassword} onChange={e => setForm(p => ({ ...p, confirmPassword: e.target.value }))} required
-                  style={{ paddingRight: '44px' }} />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+            <FormField label="Confirm New Password" icon={Lock} error={errors.confirmPassword}>
+              <input className={`input ${errors.confirmPassword ? 'input-error' : ''}`} type={showPw ? 'text' : 'password'} placeholder="Retype new password"
+                value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)}
+                style={{ paddingRight: '44px' }} />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </FormField>
 
             <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: '4px' }}>
               {loading ? <><span className="spinner" /> Resetting…</> : 'Reset Password'}

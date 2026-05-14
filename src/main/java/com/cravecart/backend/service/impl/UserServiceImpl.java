@@ -118,6 +118,33 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(Long id, User userDetails) {
         User user = getUserById(id);
+        
+        // Check if email is changing
+        if (!user.getEmail().equals(userDetails.getEmail())) {
+            // Check if user is a Google user (based on password prefix)
+            if (user.getPassword().startsWith("OAUTH2_USER_")) {
+                throw new RuntimeException("Email managed by Google cannot be changed here.");
+            }
+            
+            // Check if new email is already taken
+            if (userRepository.findByEmail(userDetails.getEmail()).isPresent()) {
+                throw new RuntimeException("Email already in use by another account.");
+            }
+
+            // Update email and trigger re-verification
+            String randomCode = UUID.randomUUID().toString();
+            user.setEmail(userDetails.getEmail());
+            user.setUsername(userDetails.getEmail());
+            user.setVerificationCode(randomCode);
+            user.setEnabled(false);
+            
+            try {
+                emailService.sendVerificationEmail(user.getEmail(), user.getName(), randomCode);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         user.setName(userDetails.getName());
         user.setAddress(userDetails.getAddress());
         user.setPhoneNumber(userDetails.getPhoneNumber());

@@ -5,20 +5,39 @@ import { authAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
+import { validateEmail, validatePhone, validatePassword, validateName } from '../utils/validation';
+
+import FormField from '../components/FormField';
+
 export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', phone: '', role: 'CUSTOMER' });
+  const [errors, setErrors] = useState({});
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
 
-  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const set = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    if (errors[k]) setErrors(p => ({ ...p, [k]: null }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!validateName(form.name)) newErrors.name = 'Name too short';
+    if (!validateEmail(form.email)) newErrors.email = 'Invalid email address';
+    if (!validatePhone(form.phone)) newErrors.phone = '10 digits required';
+    if (!validatePassword(form.password)) newErrors.password = 'Min. 6 characters';
+    if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Passwords mismatch';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
-    if (form.password !== form.confirmPassword) { toast.error('Passwords do not match!'); return; }
+    if (!validate()) return;
     
     setLoading(true);
     try {
@@ -67,61 +86,41 @@ export default function Register() {
 
         <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '36px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)' }}>
           
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div className="input-group">
-              <label className="input-label">Full name</label>
-              <div className="input-icon">
-                <User size={18} className="icon" />
-                <input className="input" type="text" placeholder="Your full name" value={form.name}
-                  onChange={e => set('name', e.target.value)} required />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <FormField label="Full name" icon={User} error={errors.name}>
+              <input className={`input ${errors.name ? 'input-error' : ''}`} type="text" placeholder="Your full name" value={form.name}
+                onChange={e => set('name', e.target.value)} />
+            </FormField>
 
-            <div className="input-group">
-              <label className="input-label">Email address</label>
-              <div className="input-icon">
-                <Mail size={18} className="icon" />
-                <input className="input" type="email" placeholder="you@example.com" value={form.email}
-                  onChange={e => set('email', e.target.value)} required />
-              </div>
-            </div>
+            <FormField label="Email address" icon={Mail} error={errors.email}>
+              <input className={`input ${errors.email ? 'input-error' : ''}`} type="email" placeholder="you@example.com" value={form.email}
+                onChange={e => set('email', e.target.value)} />
+            </FormField>
 
-            <div className="input-group">
-              <label className="input-label">Phone Number</label>
-              <div className="input-icon">
-                <Phone size={18} className="icon" />
-                <input className="input" type="tel" placeholder="Your phone number" value={form.phone}
-                  onChange={e => set('phone', e.target.value)} required />
-              </div>
-            </div>
+            <FormField label="Phone Number" icon={Phone} error={errors.phone}>
+              <input className={`input ${errors.phone ? 'input-error' : ''}`} type="tel" placeholder="Your phone number" value={form.phone}
+                onChange={e => set('phone', e.target.value)} />
+            </FormField>
 
-            <div className="input-group">
-              <label className="input-label">Password</label>
-              <div className="input-icon">
-                <Lock size={18} className="icon" />
-                <input className="input" type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters"
-                  value={form.password} onChange={e => set('password', e.target.value)} required
-                  style={{ paddingRight: '44px' }} />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+            <FormField label="Password" icon={Lock} error={errors.password}>
+              <input className={`input ${errors.password ? 'input-error' : ''}`} type={showPw ? 'text' : 'password'} placeholder="Min. 6 characters"
+                value={form.password} onChange={e => set('password', e.target.value)}
+                style={{ paddingRight: '44px' }} />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </FormField>
 
-            <div className="input-group">
-              <label className="input-label">Confirm Password</label>
-              <div className="input-icon">
-                <Lock size={18} className="icon" />
-                <input className="input" type={showPw ? 'text' : 'password'} placeholder="Retype password"
-                  value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)} required
-                  style={{ paddingRight: '44px' }} />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+            <FormField label="Confirm Password" icon={Lock} error={errors.confirmPassword}>
+              <input className={`input ${errors.confirmPassword ? 'input-error' : ''}`} type={showPw ? 'text' : 'password'} placeholder="Retype password"
+                value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)}
+                style={{ paddingRight: '44px' }} />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </FormField>
 
             <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: '8px' }}>
               {loading ? <><span className="spinner" /> Creating account…</> : 'Create Account'}

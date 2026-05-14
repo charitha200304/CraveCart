@@ -85,12 +85,19 @@ export default function Navbar() {
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>{user?.email}</div>
                     </div>
                     <div style={{ padding: '4px' }}>
-                      {isOwner && (
+                      {isOwner ? (
                         <Link to="/dashboard?tab=settings" onClick={() => setDropdownOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500, transition: 'all var(--transition)' }}
                           onMouseEnter={e => e.currentTarget.style.background='var(--primary-bg)'}
                           onMouseLeave={e => e.currentTarget.style.background='transparent'}>
                           <ChefHat size={16} color="var(--primary)" />
                           Edit Profile
+                        </Link>
+                      ) : !isAdmin && (
+                        <Link to="/profile" onClick={() => setDropdownOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500, transition: 'all var(--transition)' }}
+                          onMouseEnter={e => e.currentTarget.style.background='var(--primary-bg)'}
+                          onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                          <User size={16} color="var(--primary)" />
+                          Account Settings
                         </Link>
                       )}
                       <button onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', borderRadius: 'var(--radius-sm)', color: 'var(--error)', fontSize: '14px', fontWeight: 500, transition: 'all var(--transition)' }}
@@ -105,22 +112,45 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px' }} className="hide-mobile">
               <Link to="/login" className="btn btn-secondary btn-sm">Sign In</Link>
               <Link to="/register" className="btn btn-primary btn-sm">Join Free</Link>
             </div>
           )}
 
           {/* Mobile menu button */}
-          <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: 'none' }} className="mobile-menu-btn">
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: 'none' }} className="mobile-menu-btn btn btn-ghost">
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
+      {/* Mobile Nav Overlay */}
+      {menuOpen && (
+        <>
+          <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, top: '64px', background: 'rgba(0,0,0,0.3)', zIndex: 90 }} />
+          <nav style={{ position: 'absolute', top: '64px', left: 0, right: 0, background: 'white', borderBottom: '1px solid var(--border)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', zIndex: 100, boxShadow: 'var(--shadow-lg)' }}>
+            {navLinks.map(({ to, label, icon: Icon }) => (
+              <Link key={to} to={to} onClick={() => setMenuOpen(false)} 
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: 'var(--radius-md)', background: isActive(to) ? 'var(--primary-bg)' : 'transparent', color: isActive(to) ? 'var(--primary)' : 'var(--text-primary)', fontWeight: isActive(to) ? 700 : 500 }}>
+                <Icon size={18} />
+                {label}
+              </Link>
+            ))}
+            {!isAuthenticated && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+                <Link to="/login" onClick={() => setMenuOpen(false)} className="btn btn-secondary" style={{ width: '100%' }}>Sign In</Link>
+                <Link to="/register" onClick={() => setMenuOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>Join Free</Link>
+              </div>
+            )}
+          </nav>
+        </>
+      )}
+
       <style>{`
         @media(max-width:768px){
-          .mobile-menu-btn{display:flex!important;align-items:center;padding:8px;border-radius:var(--radius-sm)}
+          .hide-mobile{display:none!important}
+          .mobile-menu-btn{display:flex!important;align-items:center;padding:8px}
         }
       `}</style>
     </header>

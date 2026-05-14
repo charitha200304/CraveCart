@@ -7,6 +7,8 @@ import { useToast } from '../context/ToastContext';
 import { orderAPI } from '../utils/api';
 import LocationPicker from '../components/LocationPicker';
 
+import Swal from 'sweetalert2';
+
 export default function Cart() {
   const { items, removeItem, updateQty, clearCart, totalPrice, totalItems, restaurantId, restaurantName } = useCart();
   const { user } = useAuth();
@@ -24,6 +26,12 @@ export default function Cart() {
     if (orderType === 'DELIVERY' && !address.trim()) { 
       toast.error('Please select your delivery location first! 📍'); 
       return; 
+    }
+
+    const userPhone = user?.phone || user?.phoneNumber;
+    if (!userPhone || userPhone === 'N/A' || userPhone.trim() === '') {
+      toast.error('Please update your profile with a valid phone number before ordering! 📱');
+      return;
     }
     
     if (paymentMethod === 'CARD') {
@@ -51,8 +59,23 @@ export default function Cart() {
       };
       await orderAPI.place(payload);
       clearCart();
-      toast.success('Order placed successfully! 🎉');
-      navigate('/orders');
+      
+      Swal.fire({
+        title: 'Order Placed! 🎉',
+        text: 'Your delicious food is being prepared. You can track it in your orders.',
+        icon: 'success',
+        confirmButtonText: 'View My Orders',
+        confirmButtonColor: 'var(--primary)',
+        backdrop: `rgba(26, 26, 46, 0.4)`,
+        padding: '2em',
+        borderRadius: '20px',
+        customClass: {
+          title: 'swal-title-custom',
+          confirmButton: 'swal-button-custom'
+        }
+      }).then(() => {
+        navigate('/orders');
+      });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to place order');
     } finally {
@@ -61,54 +84,42 @@ export default function Cart() {
   };
 
   // MD5 Hashing for PayHere Security
-  const md5 = (string) => {
-    function md5cycle(x, k) {
-      var a = x[0], b = x[1], c = x[2], d = x[3];
-      a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586);
-      c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330);
-      a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426);
-      c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983);
-      a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417);
-      c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162);
-      a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101);
-      c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
-      a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632);
-      c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302);
-      a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083);
-      c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848);
-      a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690);
-      c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501);
-      a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784);
-      c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734);
-      a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463);
-      c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556);
-      a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353);
-      c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640);
-      a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222);
-      c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189);
-      a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835);
-      c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651);
-      a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415);
-      c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
-      a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606);
-      c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799);
-      a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744);
-      c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649);
-      a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379);
-      c = ii(c, d, a, b, k[2], 15, 718787280); b = ii(b, c, d, a, k[9], 21, -343485551);
-      x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+  const md5 = (s) => {
+    var k = [], i = 0;
+    for (; i < 64;) k[i] = 0 | (Math.abs(Math.sin(++i)) * 4294967296);
+    var a = 0x67452301, b = 0xefcdab89, c = 0x98badcfe, d = 0x10325476;
+    var x = [], j = 0;
+    var str = unescape(encodeURIComponent(s));
+    for (i = 0; i < str.length; i++) x[i >> 2] |= (str.charCodeAt(i) & 0xff) << ((i % 4) * 8);
+    x[str.length >> 2] |= 0x80 << ((str.length % 4) * 8);
+    var n = ((str.length + 8) >> 6 << 4) + 16;
+    while (x.length < n) x.push(0);
+    x[n - 2] = str.length * 8;
+    for (i = 0; i < x.length; i += 16) {
+      var a0 = a, b0 = b, c0 = c, d0 = d;
+      for (j = 0; j < 64; j++) {
+        var f, g;
+        if (j < 16) { f = (b & c) | (~b & d); g = j; }
+        else if (j < 32) { f = (d & b) | (~d & c); g = (5 * j + 1) % 16; }
+        else if (j < 48) { f = b ^ c ^ d; g = (3 * j + 5) % 16; }
+        else { f = c ^ (b | ~d); g = (7 * j) % 16; }
+        var t = d; d = c; c = b;
+        var s_val = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][(Math.floor(j / 16) << 2) | (j % 4)];
+        b = (b + rotateLeft((a + f + k[j] + (x[i + g] || 0)) | 0, s_val)) | 0;
+        a = t;
+      }
+      a = (a + a0) | 0; b = (b + b0) | 0; c = (c + c0) | 0; d = (d + d0) | 0;
     }
-    function cmn(q, a, b, x, s, t) { a = add32(add32(a, q), add32(x, t)); return add32((a << s) | (a >>> (32 - s)), b); }
-    function ff(a, b, c, d, x, s, t) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
-    function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
-    function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
-    function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
-    function add32(a, b) { return (a + b) & 0xFFFFFFFF; }
-    function str2arr(s) { var a = []; for (var i = 0; i < s.length; i += 4) a.push(s.charCodeAt(i) | (s.charCodeAt(i + 1) << 8) | (s.charCodeAt(i + 2) << 16) | (s.charCodeAt(i + 3) << 24)); return a; }
-    function arr2str(a) { var s = ""; for (var i = 0; i < a.length * 32; i += 8) s += String.fromCharCode((a[i >> 5] >>> (i % 32)) & 0xFF); return s; }
-    function hex(s) { var h = "0123456789abcdef", t = ""; for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); t += h.charAt((c >> 4) & 0x0F) + h.charAt(c & 0x0F); } return t; }
-    function core_md5(x, len) { x[len >> 5] |= 0x80 << (len % 32); x[(((len + 64) >>> 9) << 4) + 14] = len; var state = [1732584193, -271733879, -1732584194, 271733878]; for (var i = 0; i < x.length; i += 16) md5cycle(state, x.slice(i, i + 16)); return state; }
-    var a = str2arr(string); var b = core_md5(a, string.length * 8); return hex(arr2str(b));
+    return (hex(a) + hex(b) + hex(c) + hex(d)).toLowerCase();
+    function rotateLeft(n, s) { return (n << s) | (n >>> (32 - s)); }
+    function hex(n) {
+      var s = "", v;
+      for (var i = 0; i < 4; i++) {
+        v = (n >>> (i * 8)) & 0xff;
+        s += (v < 16 ? "0" : "") + v.toString(16);
+      }
+      return s;
+    }
   };
 
   const startPayHere = () => {
@@ -145,7 +156,6 @@ export default function Cart() {
     // Ensure PayHere script is loaded before proceeding
     if (!window.payhere) {
       if (window.__payhereLoading) {
-        // Already attempting to load, just wait
         toast.info('Waiting for PayHere to load...');
         return;
       }
@@ -157,7 +167,7 @@ export default function Cart() {
       script.onload = () => {
         toast.success('PayHere Ready! 💳');
         window.__payhereLoading = false;
-        startPayHere(); // retry now that script is loaded
+        startPayHere(); 
       };
       script.onerror = () => {
         toast.error('Could not load PayHere. Please check connection or disable blockers! 🚫');
@@ -238,8 +248,30 @@ export default function Cart() {
             </div>
           ))}
 
-          <button onClick={clearCart} className="btn btn-danger btn-sm" style={{ alignSelf: 'flex-start', marginTop: '8px' }}>
-            <Trash2 size={14} /> Clear Cart
+          <button 
+            onClick={() => {
+              Swal.fire({
+                title: 'Clear your cart?',
+                text: "You will lose all items added from " + (restaurantName || "this restaurant"),
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--error)',
+                cancelButtonColor: 'var(--text-muted)',
+                confirmButtonText: 'Yes, clear it',
+                borderRadius: '16px',
+                backdrop: `rgba(26, 26, 46, 0.4)`
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  clearCart();
+                  toast.success('Cart cleared');
+                }
+              });
+            }} 
+            className="btn btn-danger btn-sm" 
+            style={{ alignSelf: 'flex-start', marginTop: '8px' }}
+          >
+            <Trash2 size={14} />
+            Clear Cart
           </button>
         </div>
 

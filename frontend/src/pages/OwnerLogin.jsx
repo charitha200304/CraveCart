@@ -4,29 +4,45 @@ import { Mail, Lock, Eye, EyeOff, Store, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { authAPI } from '../utils/api';
+import FormField from '../components/FormField';
+import { validateEmail } from '../utils/validation';
 
 export default function OwnerLogin() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login: saveSession } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
+  const set = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    if (errors[k]) setErrors(p => ({ ...p, [k]: null }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!validateEmail(form.email)) newErrors.email = 'Invalid business email';
+    if (!form.password) newErrors.password = 'Password required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     try {
-      const res = await authAPI.login({ email, password });
+      const res = await authAPI.login(form);
       const user = res.data;
 
-      if (user.role === 'RESTAURANT_OWNER' || user.role === 'ADMIN') {
+      if (user.role === 'RESTAURANT_OWNER') {
         saveSession(user, user.token);
         toast.success('Welcome back to your business dashboard!');
         navigate('/dashboard');
       } else {
-        toast.error('This portal is for Restaurant Owners only. Please use the customer login.');
+        toast.error('This portal is for Restaurant Owners only.');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid credentials');
@@ -54,29 +70,21 @@ export default function OwnerLogin() {
         </div>
 
         <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '36px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="input-group">
-              <label className="input-label">Business Email</label>
-              <div className="input-icon">
-                <Mail size={18} className="icon" />
-                <input className="input" type="email" placeholder="owner@restaurant.com" value={email}
-                  onChange={e => setEmail(e.target.value)} required />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <FormField label="Business Email" icon={Mail} error={errors.email}>
+              <input className={`input ${errors.email ? 'input-error' : ''}`} type="email" placeholder="owner@restaurant.com" 
+                value={form.email} onChange={e => set('email', e.target.value)} />
+            </FormField>
 
-            <div className="input-group">
-              <label className="input-label">Password</label>
-              <div className="input-icon" style={{ position: 'relative' }}>
-                <Lock size={18} className="icon" />
-                <input className="input" type={showPw ? 'text' : 'password'} placeholder="••••••••" value={password}
-                  onChange={e => setPassword(e.target.value)} required
-                  style={{ paddingRight: '44px' }} />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+            <FormField label="Password" icon={Lock} error={errors.password}>
+              <input className={`input ${errors.password ? 'input-error' : ''}`} type={showPw ? 'text' : 'password'} placeholder="••••••••" 
+                value={form.password} onChange={e => set('password', e.target.value)}
+                style={{ paddingRight: '44px' }} />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', border: 'none', background: 'none', cursor: 'pointer' }}>
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </FormField>
 
             <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%' }}>
               {loading ? <><span className="spinner" /> Signing in…</> : 'Sign In to Dashboard'}

@@ -65,4 +65,10 @@ export const reviewAPI = {
   getFoodReviews: (id) => api.get(`/reviews/food/${id}`),
 };
 
+// User Profile
+export const userAPI = {
+  get: (id) => api.get(`/user/${id}`),
+  update: (id, data) => api.put(`/user/${id}`, data),
+};
+
 export default api;

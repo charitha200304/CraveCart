@@ -3,22 +3,39 @@ import { Link } from 'react-router-dom';
 import { Mail, ChefHat, ArrowLeft } from 'lucide-react';
 import { authAPI } from '../utils/api';
 import { useToast } from '../context/ToastContext';
+import FormField from '../components/FormField';
+import { validateEmail } from '../utils/validation';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const toast = useToast();
 
+  const handleEmailChange = (val) => {
+    setEmail(val);
+    if (error) setError(null);
+  };
+
+  const validate = () => {
+    if (!validateEmail(email)) {
+      setError('Invalid email address');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     try {
       await authAPI.forgotPassword({ email });
       setIsSuccess(true);
       toast.success('Password reset link sent!');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to send reset link. Please try again.');
+      toast.error(err.response?.data?.error || 'Failed to send reset link.');
     } finally {
       setLoading(false);
     }
@@ -58,15 +75,11 @@ export default function ForgotPassword() {
         </div>
 
         <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '36px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="input-group">
-              <label className="input-label">Email address</label>
-              <div className="input-icon">
-                <Mail size={18} className="icon" />
-                <input className="input" type="email" placeholder="you@example.com" value={email}
-                  onChange={e => setEmail(e.target.value)} required />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <FormField label="Email address" icon={Mail} error={error}>
+              <input className={`input ${error ? 'input-error' : ''}`} type="email" placeholder="you@example.com" 
+                value={email} onChange={e => handleEmailChange(e.target.value)} />
+            </FormField>
 
             <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: '4px' }}>
               {loading ? <><span className="spinner" /> Sending…</> : 'Send Reset Link'}

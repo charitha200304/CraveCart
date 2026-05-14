@@ -4,26 +4,48 @@ import { Mail, Lock, Eye, EyeOff, ChefHat } from 'lucide-react';
 import { authAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { validateEmail } from '../utils/validation';
+import FormField from '../components/FormField';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '', rememberMe: false });
+  const [errors, setErrors] = useState({});
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
 
+  const set = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    if (errors[k]) setErrors(p => ({ ...p, [k]: null }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    if (!validateEmail(form.email)) newErrors.email = 'Invalid email address';
+    if (!form.password) newErrors.password = 'Password is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setLoading(true);
     try {
       const res = await authAPI.login(form);
-      const { token, user, role, name, email, id } = res.data;
-      login({ id, name, email, role }, token, form.rememberMe);
+      const { token, user, role, name, email, id, phoneNumber } = res.data;
+      
+      if (role !== 'CUSTOMER') {
+        toast.error(`This login is for customers only. Please use the ${role === 'ADMIN' ? 'Admin' : 'Restaurant Owner'} portal.`);
+        return;
+      }
+
+      login({ id, name, email, role, phone: phoneNumber }, token, form.rememberMe);
       toast.success(`Welcome back, ${name || 'there'}!`);
-      if (role === 'RESTAURANT_OWNER') navigate('/dashboard');
-      else if (role === 'ADMIN') navigate('/admin');
-      else navigate('/');
+      navigate('/');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid credentials');
     } finally {
@@ -46,36 +68,28 @@ export default function Login() {
         </div>
 
         <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '36px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className="input-group">
-              <label className="input-label">Email address</label>
-              <div className="input-icon">
-                <Mail size={18} className="icon" />
-                <input className="input" type="email" placeholder="you@example.com" value={form.email}
-                  onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <FormField label="Email address" icon={Mail} error={errors.email}>
+              <input className={`input ${errors.email ? 'input-error' : ''}`} type="email" placeholder="you@example.com" value={form.email}
+                onChange={e => set('email', e.target.value)} />
+            </FormField>
 
-            <div className="input-group">
-              <label className="input-label">Password</label>
-              <div className="input-icon">
-                <Lock size={18} className="icon" />
-                <input className="input" type={showPw ? 'text' : 'password'} placeholder="Your password"
-                  value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required
-                  style={{ paddingRight: '44px' }} />
-                <button type="button" onClick={() => setShowPw(!showPw)}
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex' }}>
-                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+            <FormField label="Password" icon={Lock} error={errors.password}>
+              <input className={`input ${errors.password ? 'input-error' : ''}`} type={showPw ? 'text' : 'password'} placeholder="Your password"
+                value={form.password} onChange={e => set('password', e.target.value)}
+                style={{ paddingRight: '44px' }} />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex' }}>
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </FormField>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: 'var(--text-secondary)' }}>
                 <input 
                   type="checkbox" 
                   checked={form.rememberMe}
-                  onChange={(e) => setForm(p => ({ ...p, rememberMe: e.target.checked }))}
+                  onChange={(e) => set('rememberMe', e.target.checked)}
                   style={{ accentColor: 'var(--primary)', width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 Remember me
