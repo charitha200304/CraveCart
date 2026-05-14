@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -15,6 +16,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationCode) 
             throws MessagingException, UnsupportedEncodingException {
         System.out.println(">> Sending verification email to: [" + toEmail + "]");
@@ -24,7 +26,8 @@ public class EmailService {
         String mailContent = "<p>Dear " + name + ",</p>";
         mailContent += "<p>Please click the link below to verify your registration:</p>";
         
-        String verifyURL = "http://localhost:5173/verify?code=" + verificationCode + "&email=" + toEmail;
+        String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:5173");
+        String verifyURL = frontendUrl + "/verify?code=" + verificationCode + "&email=" + toEmail;
         
         mailContent += "<h3><a href=\"" + verifyURL + "\">VERIFY MY ACCOUNT</a></h3>";
         mailContent += "<p>Thank you,<br>The CraveCart Team</p>";
@@ -39,6 +42,7 @@ public class EmailService {
 
         mailSender.send(message);
     }
+    @Async
     public void sendPasswordResetEmail(String toEmail, String name, String resetToken) 
             throws MessagingException, UnsupportedEncodingException {
         System.out.println(">> Sending password reset email to: [" + toEmail + "]");
@@ -48,7 +52,8 @@ public class EmailService {
         String mailContent = "<p>Dear " + name + ",</p>";
         mailContent += "<p>You have requested to reset your password. Please click the link below to set a new password:</p>";
         
-        String resetURL = "http://localhost:5173/reset-password?token=" + resetToken;
+        String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:5173");
+        String resetURL = frontendUrl + "/reset-password?token=" + resetToken;
         
         mailContent += "<h3><a href=\"" + resetURL + "\">RESET MY PASSWORD</a></h3>";
         mailContent += "<p>If you did not request a password reset, please ignore this email.</p>";
