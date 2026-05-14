@@ -35,9 +35,18 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         
+        // Determine the frontend base URL dynamically to support mobile devices (IP address vs localhost)
+        String host = request.getHeader("Host"); // e.g. "localhost:8080" or "192.168.1.5:8080"
+        String frontendUrl = "http://localhost:5173"; // Default fallback
+        
+        if (host != null) {
+            String domain = host.split(":")[0];
+            frontendUrl = "http://" + domain + ":5173";
+        }
+
         if (user.getEnabled() == null || !user.getEnabled()) {
             String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-            String targetUrl = "http://localhost:5173/verify?status=pending&email=" + encodedEmail;
+            String targetUrl = frontendUrl + "/verify?status=pending&email=" + encodedEmail;
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
             return;
         }
@@ -48,7 +57,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
         String encodedName  = URLEncoder.encode(user.getName() != null ? user.getName() : "", StandardCharsets.UTF_8);
 
-        String targetUrl = "http://localhost:5173/oauth-redirect"
+        String targetUrl = frontendUrl + "/oauth-redirect"
                 + "?token=" + token
                 + "&id=" + user.getId()
                 + "&email=" + encodedEmail

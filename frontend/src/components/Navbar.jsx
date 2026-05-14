@@ -137,7 +137,32 @@ export default function Navbar() {
                 {label}
               </Link>
             ))}
-            {!isAuthenticated && (
+            
+            {isAuthenticated ? (
+              <div style={{ marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div className="avatar" style={{ width: '40px', height: '40px', fontSize: '16px' }}>
+                    {user?.name?.[0]?.toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '15px' }}>{user?.name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{user?.email}</div>
+                  </div>
+                </div>
+                {!isAdmin && (
+                  <Link to={isOwner ? "/dashboard?tab=settings" : "/profile"} onClick={() => setMenuOpen(false)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontWeight: 500 }}>
+                    <User size={18} color="var(--primary)" />
+                    {isOwner ? 'Restaurant Settings' : 'Account Settings'}
+                  </Link>
+                )}
+                <button onClick={() => { handleLogout(); setMenuOpen(false); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: 'var(--radius-md)', color: 'var(--error)', fontWeight: 600, border: 'none', background: 'transparent', width: '100%', cursor: 'pointer' }}>
+                  <LogOut size={18} />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
                 <Link to="/login" onClick={() => setMenuOpen(false)} className="btn btn-secondary" style={{ width: '100%' }}>Sign In</Link>
                 <Link to="/register" onClick={() => setMenuOpen(false)} className="btn btn-primary" style={{ width: '100%' }}>Join Free</Link>
