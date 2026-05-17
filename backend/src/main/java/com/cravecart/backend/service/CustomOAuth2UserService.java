@@ -49,19 +49,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .password("OAUTH2_USER_" + java.util.UUID.randomUUID().toString())
                     .role(role)
                     .verificationCode(randomCode)
-                    .enabled(false)
+                    .enabled(true) // Google users are pre-verified
                     .build();
             userRepository.save(user);
-            sendEmailSafely(email, name, randomCode);
         } else {
             user = userOptional.get();
-            // If user exists but is not verified, and we have a new role, maybe update it? 
-            // For now just resend email.
+            // If the user registered manually before but didn't verify, 
+            // logging in with Google proves they own the email, so we can verify them now.
             if (user.getEnabled() == null || !user.getEnabled()) {
-                String newCode = java.util.UUID.randomUUID().toString();
-                user.setVerificationCode(newCode);
+                user.setEnabled(true);
                 userRepository.save(user);
-                sendEmailSafely(email, name, newCode);
             }
         }
         return oAuth2User;
