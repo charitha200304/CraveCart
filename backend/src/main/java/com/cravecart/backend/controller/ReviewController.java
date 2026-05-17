@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reviews")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "https://cravecart-frontend.vercel.app"})
 @RequiredArgsConstructor
 public class ReviewController {
 
@@ -42,5 +42,17 @@ public class ReviewController {
     @GetMapping("/food/{id}")
     public ResponseEntity<List<ReviewResponseDTO>> getFoodItemReviews(@PathVariable Long id) {
         return ResponseEntity.ok(reviewService.getFoodItemReviews(id));
+    }
+
+    // Admin endpoints
+    @GetMapping("/all")
+    public ResponseEntity<List<ReviewResponseDTO>> getAllReviews() {
+        return ResponseEntity.ok(reviewService.getAllReviews());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+        return ResponseEntity.ok("Review deleted");
     }
 }

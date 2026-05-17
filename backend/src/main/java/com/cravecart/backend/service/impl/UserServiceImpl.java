@@ -186,4 +186,28 @@ public class UserServiceImpl implements UserService {
         user.setResetPasswordTokenExpiry(null);
         userRepository.save(user);
     }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public User toggleUserStatus(Long id) {
+        User user = getUserById(id);
+        user.setEnabled(!Boolean.TRUE.equals(user.getEnabled()));
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User changeUserRole(Long id, String role) {
+        User user = getUserById(id);
+        user.setRole(role);
+        return userRepository.save(user);
+    }
 }

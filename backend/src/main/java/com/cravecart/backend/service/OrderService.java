@@ -10,4 +10,6 @@ public interface OrderService {
     List<Order> getOrdersByRestaurantId(Long restaurantId);
     Order updateOrderStatus(Long orderId, String status, String reason);
     Order getOrderById(Long orderId);
+    List<Order> getAllOrders();
+    void deleteOrder(Long id);
 }

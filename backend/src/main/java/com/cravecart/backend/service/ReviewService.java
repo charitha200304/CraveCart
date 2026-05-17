@@ -9,4 +9,6 @@ public interface ReviewService {
     ReviewResponseDTO addReview(ReviewRequestDTO request, String userEmail);
     List<ReviewResponseDTO> getRestaurantReviews(Long restaurantId);
     List<ReviewResponseDTO> getFoodItemReviews(Long foodItemId);
+    List<ReviewResponseDTO> getAllReviews();
+    void deleteReview(Long id);
 }

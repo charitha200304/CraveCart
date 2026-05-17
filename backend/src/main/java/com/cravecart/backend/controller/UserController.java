@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "https://cravecart-frontend.vercel.app"})
 public class UserController {
 
     @Autowired
@@ -144,5 +144,29 @@ public class UserController {
             error.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
+    }
+
+    // ── Admin CRUD ────────────────────────────────────────────
+    @GetMapping("/admin/all")
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "User deleted successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/admin/{id}/toggle")
+    public ResponseEntity<?> toggleUserStatus(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.toggleUserStatus(id));
+    }
+
+    @PutMapping("/admin/{id}/role")
+    public ResponseEntity<?> changeUserRole(@PathVariable Long id, @RequestParam String role) {
+        return ResponseEntity.ok(userService.changeUserRole(id, role));
     }
 }

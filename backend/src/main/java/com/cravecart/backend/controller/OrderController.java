@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "https://cravecart-frontend.vercel.app"})
 public class OrderController {
 
     private final OrderService orderService;
@@ -51,5 +51,17 @@ public class OrderController {
     @GetMapping("/restaurant/{restaurantId}")
     public ResponseEntity<List<Order>> getRestaurantOrders(@PathVariable Long restaurantId) {
         return ResponseEntity.ok(orderService.getOrdersByRestaurantId(restaurantId));
+    }
+
+    // Admin endpoints
+    @GetMapping("/all")
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok("Order deleted successfully");
     }
 }

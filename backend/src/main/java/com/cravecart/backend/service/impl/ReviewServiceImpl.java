@@ -102,6 +102,18 @@ public class ReviewServiceImpl implements ReviewService {
         foodItemRepository.save(foodItem);
     }
 
+    @Override
+    public List<ReviewResponseDTO> getAllReviews() {
+        return reviewRepository.findAll().stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteReview(Long id) {
+        reviewRepository.deleteById(id);
+    }
+
     private ReviewResponseDTO mapToResponseDTO(Review review) {
         return ReviewResponseDTO.builder()
                 .id(review.getId())

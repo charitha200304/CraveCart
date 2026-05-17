@@ -35,4 +35,10 @@ public interface UserService {
 
     void generatePasswordResetToken(String email) throws Exception;
     void resetPassword(String token, String newPassword) throws Exception;
+
+    // Admin methods
+    java.util.List<User> getAllUsers();
+    void deleteUser(Long id);
+    User toggleUserStatus(Long id);
+    User changeUserRole(Long id, String role);
 }
