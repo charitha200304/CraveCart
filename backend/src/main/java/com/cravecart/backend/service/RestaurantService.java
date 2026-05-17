@@ -6,6 +6,8 @@ import java.util.List;
 public interface RestaurantService {
     RestaurantDTO addRestaurant(RestaurantDTO restaurantDTO);
     List<RestaurantDTO> getAllRestaurants();
+    List<RestaurantDTO> getPendingRestaurants();
+    RestaurantDTO approveRestaurant(Long id);
     RestaurantDTO getRestaurantById(Long id);
     RestaurantDTO updateRestaurant(Long id, RestaurantDTO restaurantDTO);
     RestaurantDTO getRestaurantByOwnerId(Long ownerId);

@@ -34,9 +34,24 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public List<RestaurantDTO> getAllRestaurants() {
-        return restaurantRepository.findAll().stream()
+        return restaurantRepository.findByApprovedTrue().stream()
                 .map(this::mapEntityToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RestaurantDTO> getPendingRestaurants() {
+        return restaurantRepository.findByApprovedFalse().stream()
+                .map(this::mapEntityToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public RestaurantDTO approveRestaurant(Long id) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+        restaurant.setApproved(true);
+        return mapEntityToDto(restaurantRepository.save(restaurant));
     }
 
     @Override
@@ -92,6 +107,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                 .ownerId(entity.getOwner().getId())
                 .averageRating(entity.getAverageRating())
                 .reviewCount(entity.getReviewCount())
+                .approved(entity.getApproved())
                 .build();
     }
 }

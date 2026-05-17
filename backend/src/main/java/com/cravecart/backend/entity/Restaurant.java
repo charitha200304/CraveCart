@@ -34,4 +34,7 @@ public class Restaurant {
 
     @Column(name = "review_count")
     private Integer reviewCount = 0;
+
+    @Column(name = "approved")
+    private Boolean approved = false;
 }

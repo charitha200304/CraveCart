@@ -20,4 +20,5 @@ public class RestaurantDTO {
     private Long ownerId;
     private Double averageRating;
     private Integer reviewCount;
+    private Boolean approved;
 }

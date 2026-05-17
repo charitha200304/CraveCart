@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/restaurants")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "https://cravecart-frontend.vercel.app"})
 @RequiredArgsConstructor
 public class RestaurantController {
 
@@ -62,5 +62,16 @@ public class RestaurantController {
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<RestaurantDTO> getRestaurantByOwnerId(@PathVariable Long ownerId) {
         return ResponseEntity.ok(restaurantService.getRestaurantByOwnerId(ownerId));
+    }
+
+    // Admin endpoints
+    @GetMapping("/pending")
+    public ResponseEntity<List<RestaurantDTO>> getPendingRestaurants() {
+        return ResponseEntity.ok(restaurantService.getPendingRestaurants());
+    }
+
+    @PostMapping("/approve/{id}")
+    public ResponseEntity<RestaurantDTO> approveRestaurant(@PathVariable Long id) {
+        return ResponseEntity.ok(restaurantService.approveRestaurant(id));
     }
 }
