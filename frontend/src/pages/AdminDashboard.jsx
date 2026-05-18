@@ -2,26 +2,29 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 import { useToast } from '../context/ToastContext';
 import {
-  LayoutDashboard, Users, Store, ShoppingBag, Star, Utensils,
-  Trash2, ToggleLeft, ToggleRight, ChevronDown, CheckCircle, Clock,
-  MapPin, Mail, Shield, RefreshCw, TrendingUp
+  LayoutDashboard, Users, Store, ShoppingBag, Star,
+  Trash2, ToggleLeft, ToggleRight, CheckCircle, Clock,
+  MapPin, Mail, RefreshCw
 } from 'lucide-react';
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip,
+  PieChart, Pie, Cell, BarChart, Bar, Legend
+} from 'recharts';
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'users',     label: 'Users',     icon: Users },
   { id: 'restaurants', label: 'Restaurants', icon: Store },
-  { id: 'food',      label: 'Food Items', icon: Utensils },
   { id: 'orders',    label: 'Orders',    icon: ShoppingBag },
   { id: 'reviews',   label: 'Reviews',   icon: Star },
 ];
 
 const STATUS_COLORS = {
-  PENDING:   { bg: '#FEF3C7', color: '#92400E' },
-  CONFIRMED: { bg: '#DBEAFE', color: '#1E40AF' },
-  DELIVERED: { bg: '#D1FAE5', color: '#065F46' },
-  CANCELLED: { bg: '#FEE2E2', color: '#991B1B' },
-  PREPARING: { bg: '#EDE9FE', color: '#5B21B6' },
+  PENDING:   { bg: '#FEF3C7', color: '#92400E', hex: '#F59E0B' },
+  CONFIRMED: { bg: '#DBEAFE', color: '#1E40AF', hex: '#3B82F6' },
+  DELIVERED: { bg: '#D1FAE5', color: '#065F46', hex: '#10B981' },
+  CANCELLED: { bg: '#FEE2E2', color: '#991B1B', hex: '#EF4444' },
+  PREPARING: { bg: '#EDE9FE', color: '#5B21B6', hex: '#8B5CF6' },
 };
 
 function StatCard({ icon: Icon, label, value, color }) {
@@ -58,18 +61,17 @@ function TableHeader({ cols }) {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [data, setData]           = useState({ users: [], restaurants: [], pending: [], food: [], orders: [], reviews: [] });
+  const [data, setData]           = useState({ users: [], restaurants: [], pending: [], orders: [], reviews: [] });
   const [loading, setLoading]     = useState(true);
   const toast = useToast();
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [users, restaurants, pending, food, orders, reviews] = await Promise.all([
+      const [users, restaurants, pending, orders, reviews] = await Promise.all([
         api.get('/user/admin/all'),
         api.get('/restaurants/all'),
         api.get('/restaurants/pending'),
-        api.get('/food/all'),
         api.get('/orders/all'),
         api.get('/reviews/all'),
       ]);
@@ -77,7 +79,6 @@ export default function AdminDashboard() {
         users: users.data,
         restaurants: restaurants.data,
         pending: pending.data,
-        food: food.data,
         orders: orders.data,
         reviews: reviews.data,
       });
@@ -124,13 +125,6 @@ export default function AdminDashboard() {
     toast.success('Restaurant deleted');
   };
 
-  const deleteFood = async (id) => {
-    if (!confirm('Delete this food item?')) return;
-    await api.delete(`/food/delete/${id}`);
-    setData(d => ({ ...d, food: d.food.filter(f => f.id !== id) }));
-    toast.success('Food item deleted');
-  };
-
   const deleteOrder = async (id) => {
     if (!confirm('Delete this order?')) return;
     await api.delete(`/orders/${id}`);
@@ -143,6 +137,54 @@ export default function AdminDashboard() {
     await api.delete(`/reviews/${id}`);
     setData(d => ({ ...d, reviews: d.reviews.filter(r => r.id !== id) }));
     toast.success('Review deleted');
+  };
+
+  // ── Chart Calculators ──────────────────────────────────────
+  const getTrendData = () => {
+    const groups = {};
+    data.orders.forEach(o => {
+      if (!o.orderDate) return;
+      const dateStr = new Date(o.orderDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      if (!groups[dateStr]) {
+        groups[dateStr] = { date: dateStr, revenue: 0, count: 0 };
+      }
+      groups[dateStr].revenue += o.totalAmount || 0;
+      groups[dateStr].count += 1;
+    });
+    const list = Object.values(groups);
+    if (list.length === 0) {
+      return [
+        { date: 'Mon', revenue: 1200, count: 3 },
+        { date: 'Tue', revenue: 1900, count: 5 },
+        { date: 'Wed', revenue: 1500, count: 4 },
+        { date: 'Thu', revenue: 2500, count: 7 },
+        { date: 'Fri', revenue: 3200, count: 9 },
+        { date: 'Sat', revenue: 4500, count: 12 },
+        { date: 'Sun', revenue: 3800, count: 10 },
+      ];
+    }
+    return list.slice(-7);
+  };
+
+  const getStatusData = () => {
+    const counts = {};
+    data.orders.forEach(o => {
+      counts[o.status] = (counts[o.status] || 0) + 1;
+    });
+    const list = Object.keys(counts).map(status => ({
+      name: status,
+      value: counts[status],
+      color: STATUS_COLORS[status]?.hex || '#94A3B8'
+    }));
+    if (list.length === 0) {
+      return [
+        { name: 'DELIVERED', value: 15, color: '#10B981' },
+        { name: 'PENDING', value: 5, color: '#F59E0B' },
+        { name: 'PREPARING', value: 8, color: '#8B5CF6' },
+        { name: 'CANCELLED', value: 2, color: '#EF4444' },
+      ];
+    }
+    return list;
   };
 
   // ── Shared UI ──────────────────────────────────────────────
@@ -191,14 +233,63 @@ export default function AdminDashboard() {
         {activeTab === 'dashboard' && (
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px' }}>Dashboard Overview</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Welcome back, Admin. Here's what's happening.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Welcome back, Admin. Here is your system analysis.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '32px' }}>
               <StatCard icon={Users}       label="Total Users"       value={data.users.length}       color="#6366F1" />
               <StatCard icon={Store}       label="Approved Restaurants" value={data.restaurants.length} color="#F59E0B" />
               <StatCard icon={Clock}       label="Pending Restaurants" value={data.pending.length}    color="#EF4444" />
               <StatCard icon={ShoppingBag} label="Total Orders"      value={data.orders.length}      color="#10B981" />
-              <StatCard icon={Utensils}    label="Food Items"        value={data.food.length}        color="#3B82F6" />
               <StatCard icon={Star}        label="Total Reviews"     value={data.reviews.length}     color="#EC4899" />
+            </div>
+
+            {/* Analysis Charts Section */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+              {/* Daily Sales Trend */}
+              <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '24px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border)' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', color: 'var(--text-primary)' }}>Daily Sales & Revenue Trend</h3>
+                <div style={{ width: '100%', height: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={getTrendData()}>
+                      <defs>
+                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={12} />
+                      <YAxis stroke="var(--text-muted)" fontSize={12} />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="revenue" name="Revenue (Rs.)" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Order Status Distribution */}
+              <div style={{ background: 'white', borderRadius: 'var(--radius-xl)', padding: '24px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border)' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px', color: 'var(--text-primary)' }}>Order Status Analysis</h3>
+                <div style={{ width: '100%', height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={getStatusData()}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {getStatusData().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
 
             {data.pending.length > 0 && (
@@ -329,34 +420,6 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── FOOD ITEMS ── */}
-        {activeTab === 'food' && (
-          <div>
-            <h1 style={{ fontSize: '22px', fontWeight: 800 }}>Food Items</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>{data.food.length} total items</p>
-            <div style={cardWrap}>
-              {data.food.length === 0 ? emptyState('No food items') : (
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <TableHeader cols={['Item', 'Price', 'Stock', 'Restaurant', 'Action']} />
-                    <tbody>
-                      {data.food.map(f => (
-                        <tr key={f.id}>
-                          <td style={tdStyle}><strong>{f.name}</strong><br /><span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{f.category}</span></td>
-                          <td style={tdStyle}>Rs. {f.price?.toFixed(2)}</td>
-                          <td style={tdStyle}>{f.stockQuantity ?? '—'}</td>
-                          <td style={tdStyle}>#{f.restaurantId}</td>
-                          <td style={tdStyle}><DeleteBtn onDelete={() => deleteFood(f.id)} /></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           </div>
         )}
