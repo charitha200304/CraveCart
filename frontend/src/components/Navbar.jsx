@@ -140,7 +140,7 @@ export default function Navbar() {
             {/* Mobile Cart Icon */}
             {isAuthenticated && !isOwner && !isAdmin && (
               <Link to="/cart" onClick={() => setMenuOpen(false)}
-                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: 'var(--radius-md)', background: 'transparent', color: 'var(--text-primary)', fontWeight: 500 }}
+                style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: 'var(--radius-md)', background: 'transparent', color: 'var(--text-primary)', fontWeight: 500 }}
               >
                 <ShoppingCart size={18} />
                 {totalItems > 0 && (
@@ -186,9 +186,11 @@ export default function Navbar() {
       )}
 
       <style>{`
+        .notif-badge{position:absolute;top:-4px;right:-4px;background:var(--error);color:white;font-size:10px;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center}
+        .mobile-menu-btn{display:none}
         @media(max-width:768px){
           .hide-mobile{display:none!important}
-          .mobile-menu-btn{display:flex!important;align-items:center;padding:8px}
+          .mobile-menu-btn{display:flex!important;align-items:center}
         }
       `}</style>
     </header>
