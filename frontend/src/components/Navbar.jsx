@@ -137,6 +137,19 @@ export default function Navbar() {
                 {label}
               </Link>
             ))}
+            {/* Mobile Cart Icon */}
+            {isAuthenticated && !isOwner && !isAdmin && (
+              <Link to="/cart" onClick={() => setMenuOpen(false)}
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: 'var(--radius-md)', background: 'transparent', color: 'var(--text-primary)', fontWeight: 500 }}
+              >
+                <ShoppingCart size={18} />
+                {totalItems > 0 && (
+                  <span className="notif-badge">
+                    {totalItems > 9 ? '9+' : totalItems}
+                  </span>
+                )}
+              </Link>
+            )}
             
             {isAuthenticated ? (
               <div style={{ marginTop: '8px', paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
