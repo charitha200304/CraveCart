@@ -168,14 +168,12 @@ export default function AdminDashboard() {
       value: counts[status],
       color: STATUS_COLORS[status]?.hex || '#94A3B8'
     }));
-      // If there are no orders, return an empty array to indicate no data
-      if (list.length === 0) {
-        return [];
-      }
-
+    // Return empty array if no status data
+    if (list.length === 0) {
+      return [];
+    }
     return list;
   };
-
   // ── Shared UI ──────────────────────────────────────────────
   const cardWrap = {
     background: 'white', borderRadius: 'var(--radius-xl)',
