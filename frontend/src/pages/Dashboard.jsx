@@ -453,20 +453,20 @@ export default function Dashboard() {
             </div>
 
             {/* Analytics Chart */}
-            <div style={{ 
-              background: 'var(--surface)', 
-              padding: '32px', 
-              borderRadius: 'var(--radius-xl)', 
-              border: '1px solid var(--border)', 
-              boxShadow: 'var(--shadow-sm)',
-              minHeight: '400px',
-              width: '100%'
-            }}>
+            <div style={{
+        background: 'var(--surface)',
+        padding: '32px',
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--border)',
+        boxShadow: 'var(--shadow-sm)',
+        minHeight: '450px',
+        width: '100%'
+      }}>
               <div style={{ marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Sales Performance</h3>
                 <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Revenue trends for the last 7 days</p>
               </div>
-              <div style={{ width: '100%', minHeight: '300px', position: 'relative' }}>
+              <div style={{ width: '100%', minHeight: '350px', position: 'relative' }}>
                 {hasMounted && (
                   <ResponsiveContainer width="100%" height={300} debounce={1}>
                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

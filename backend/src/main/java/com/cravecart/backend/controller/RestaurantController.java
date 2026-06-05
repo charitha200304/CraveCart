@@ -45,7 +45,12 @@ public class RestaurantController {
 
     @GetMapping("/{id}")
     public ResponseEntity<RestaurantDTO> getRestaurantById(@PathVariable Long id) {
-        return ResponseEntity.ok(restaurantService.getRestaurantById(id));
+        try {
+            return ResponseEntity.ok(restaurantService.getRestaurantById(id));
+        } catch (RuntimeException e) {
+            // Could be not found or other errors; return 404 for not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @PutMapping("/{id}")

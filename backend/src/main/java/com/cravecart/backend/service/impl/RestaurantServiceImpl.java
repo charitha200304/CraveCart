@@ -109,7 +109,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                 .description(entity.getDescription())
                 .imageUrl(entity.getImageUrl())
                 .category(entity.getCategory())
-                .ownerId(entity.getOwner().getId())
+                .ownerId(entity.getOwner() != null ? entity.getOwner().getId() : null)
                 .averageRating(entity.getAverageRating())
                 .reviewCount(entity.getReviewCount())
                 .approved(entity.getApproved())
