@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/reviews")
-@CrossOrigin(origins = {"http://localhost:5173", "https://cravecart-frontend.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://crave-cart-delta.vercel.app"})
 @RequiredArgsConstructor
 public class ReviewController {
 

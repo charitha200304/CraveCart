@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = {"http://localhost:5173", "https://cravecart-frontend.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://crave-cart-delta.vercel.app"})
 public class UserController {
 
     @Autowired
