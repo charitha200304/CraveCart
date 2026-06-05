@@ -153,15 +153,7 @@ export default function AdminDashboard() {
     });
     const list = Object.values(groups);
     if (list.length === 0) {
-      return [
-        { date: 'Mon', revenue: 1200, count: 3 },
-        { date: 'Tue', revenue: 1900, count: 5 },
-        { date: 'Wed', revenue: 1500, count: 4 },
-        { date: 'Thu', revenue: 2500, count: 7 },
-        { date: 'Fri', revenue: 3200, count: 9 },
-        { date: 'Sat', revenue: 4500, count: 12 },
-        { date: 'Sun', revenue: 3800, count: 10 },
-      ];
+      return [];
     }
     return list.slice(-7);
   };
@@ -176,14 +168,11 @@ export default function AdminDashboard() {
       value: counts[status],
       color: STATUS_COLORS[status]?.hex || '#94A3B8'
     }));
-    if (list.length === 0) {
-      return [
-        { name: 'DELIVERED', value: 15, color: '#10B981' },
-        { name: 'PENDING', value: 5, color: '#F59E0B' },
-        { name: 'PREPARING', value: 8, color: '#8B5CF6' },
-        { name: 'CANCELLED', value: 2, color: '#EF4444' },
-      ];
-    }
+      // If there are no orders, return an empty array to indicate no data
+      if (list.length === 0) {
+        return [];
+      }
+
     return list;
   };
 
@@ -202,37 +191,37 @@ export default function AdminDashboard() {
 
   if (loading) return (
     <div style={{ padding: '60px', textAlign: 'center' }}>
+    <div className="loading-container">
       <div className="spinner" style={{ margin: '0 auto' }} />
       <p style={{ marginTop: 16, color: 'var(--text-muted)' }}>Loading admin data…</p>
     </div>
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
+    <div className="admin-container">
       {/* Sidebar */}
-      <aside style={{ width: '220px', flexShrink: 0, background: 'white', borderRight: '1px solid var(--border)', padding: '24px 12px', position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
-        <div style={{ fontWeight: 800, fontSize: '16px', color: 'var(--primary)', marginBottom: '24px', padding: '0 8px' }}>⚙ Admin Panel</div>
+      <aside className="admin-sidebar">
+        <div className="admin-title">⚙ Admin Panel</div>
         {TABS.map(tab => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: 'none', background: active ? 'var(--primary-bg)' : 'transparent', color: active ? 'var(--primary)' : 'var(--text-secondary)', fontWeight: active ? 700 : 500, fontSize: '14px', cursor: 'pointer', marginBottom: '4px', transition: 'all 0.15s' }}>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`nav-btn ${active ? 'active' : ''}`}>
               <Icon size={16} />{tab.label}
             </button>
           );
         })}
-        <button onClick={fetchAll} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: 'none', background: 'transparent', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginTop: '12px' }}>
+        <button onClick={fetchAll} className="nav-btn-refresh">
           <RefreshCw size={14} /> Refresh
         </button>
       </aside>
 
       {/* Main */}
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+      <main className="admin-main">
 
         {/* ── DASHBOARD ── */}
         {activeTab === 'dashboard' && (
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px' }}>Dashboard Overview</h1>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Welcome back, Admin. Here is your system analysis.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '32px' }}>
               <StatCard icon={Users}       label="Total Users"       value={data.users.length}       color="#6366F1" />
