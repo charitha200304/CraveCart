@@ -79,10 +79,15 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public void deleteRestaurant(Long id) {
-        if (!restaurantRepository.existsById(id)) {
-            throw new RuntimeException("Restaurant not found");
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+        // Delete associated owner (restaurant owner) to free up email/username
+        User owner = restaurant.getOwner();
+        if (owner != null) {
+            userRepository.delete(owner);
         }
-        restaurantRepository.deleteById(id);
+        // Delete restaurant (cascades food items, reviews, orders)
+        restaurantRepository.delete(restaurant);
     }
 
     // Helper Mappings
