@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -26,6 +27,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final CustomUserDetailsService userDetailsService;
     private final UserRepository userRepository;
 
+    @Value("${FRONTEND_URL:http://localhost:5173}")
+    private String frontendBaseUrl;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
@@ -35,11 +39,11 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         
-        // Determine the frontend base URL dynamically to support mobile devices (IP address vs localhost)
-        String host = request.getHeader("Host"); // e.g. "localhost:8080" or "192.168.1.5:8080"
-        String frontendUrl = "http://localhost:5173"; // Default fallback
+        String frontendUrl = frontendBaseUrl;
         
-        if (host != null) {
+        // Support dynamic local IP testing only if running on a local IP
+        String host = request.getHeader("Host"); 
+        if (host != null && host.matches(".*\\d+\\.\\d+\\.\\d+\\.\\d+.*") && frontendUrl.contains("localhost")) {
             String domain = host.split(":")[0];
             frontendUrl = "http://" + domain + ":5173";
         }

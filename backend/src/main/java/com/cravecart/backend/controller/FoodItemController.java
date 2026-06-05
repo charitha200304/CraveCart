@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/food")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "https://cravecart-frontend.vercel.app"})
 @RequiredArgsConstructor
 public class FoodItemController {
 
