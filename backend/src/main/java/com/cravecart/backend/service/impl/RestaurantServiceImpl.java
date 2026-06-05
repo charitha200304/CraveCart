@@ -5,7 +5,7 @@ import com.cravecart.backend.entity.Restaurant;
 import com.cravecart.backend.entity.User;
 import com.cravecart.backend.repository.RestaurantRepository;
 import com.cravecart.backend.repository.UserRepository;
-import com.cravecart.backend.service.RestaurantService;
+import com.cravecart.backend.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +49,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantDTO approveRestaurant(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new NotFoundException("Restaurant not found"));
         restaurant.setApproved(true);
         return mapEntityToDto(restaurantRepository.save(restaurant));
     }
@@ -57,14 +57,14 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantDTO getRestaurantById(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new NotFoundException("Restaurant not found"));
         return mapEntityToDto(restaurant);
     }
 
     @Override
     public RestaurantDTO updateRestaurant(Long id, RestaurantDTO dto) {
         Restaurant existing = restaurantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new NotFoundException("Restaurant not found"));
 
         mapDtoToEntity(dto, existing);
         return mapEntityToDto(restaurantRepository.save(existing));
@@ -73,14 +73,14 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public RestaurantDTO getRestaurantByOwnerId(Long ownerId) {
         Restaurant restaurant = restaurantRepository.findByOwnerId(ownerId)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found for owner"));
+                .orElseThrow(() -> new NotFoundException("Restaurant not found for owner"));
         return mapEntityToDto(restaurant);
     }
 
     @Override
     public void deleteRestaurant(Long id) {
         Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new NotFoundException("Restaurant not found"));
         // Delete associated owner (restaurant owner) to free up email/username
         User owner = restaurant.getOwner();
         if (owner != null) {

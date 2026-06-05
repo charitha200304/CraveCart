@@ -18,12 +18,16 @@ export default function RestaurantDetail() {
   const { totalItems, totalPrice, restaurantId } = useCart();
 
   const loadData = async () => {
+    if (!id) {
+      console.warn('Restaurant ID is missing, skipping data load');
+      return;
+    }
     try {
       const [rRes, fRes] = await Promise.all([
         restaurantAPI.getById(id),
         foodAPI.getAll(),
       ]);
-      
+
       setRestaurant(rRes.data);
       const all = fRes.data || [];
       const mine = all.filter(f => String(f.restaurantId) === String(id) || String(f.restaurant?.id) === String(id));
@@ -36,6 +40,7 @@ export default function RestaurantDetail() {
   };
 
   useEffect(() => {
+    if (!id) return;
     loadData();
     const interval = setInterval(loadData, 10000); // Poll every 10s to keep menu live
     return () => clearInterval(interval);

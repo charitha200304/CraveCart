@@ -60,8 +60,12 @@ public class RestaurantController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRestaurant(@PathVariable Long id) {
-        restaurantService.deleteRestaurant(id);
-        return ResponseEntity.ok("Restaurant deleted successfully");
+        try {
+            restaurantService.deleteRestaurant(id);
+            return ResponseEntity.ok("Restaurant deleted successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @GetMapping("/owner/{ownerId}")
