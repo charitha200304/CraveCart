@@ -1,0 +1,132 @@
+/* Admin Dashboard responsive styles */
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-body);
+}
+
+.admin-sidebar {
+  width: 250px;
+  background: var(--bg-sidebar);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  transition: transform 0.3s ease-in-out;
+}
+
+.admin-sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.admin-main {
+  flex: 1;
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.admin-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+.nav-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+}
+
+.nav-btn.active {
+  background: var(--bg-primary);
+  color: white;
+}
+
+.nav-btn:hover {
+  background: var(--bg-muted);
+}
+
+.nav-btn-refresh {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-muted);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.sidebar-toggle {
+  display: none;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: var(--bg-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+  .admin-container {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    z-index: 999;
+  }
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-toggle {
+    display: block;
+  }
+  .admin-main {
+    margin-left: 0;
+    padding-top: 60px; /* space for toggle button */
+  }
+}
+
+/* Responsive grid for stat cards */
+.stat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+/* Table container already uses overflow-x auto */
+
+/* Ensure charts adapt */
+.chart-wrapper {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .chart-wrapper {
+    padding: 16px;
+  }
+}

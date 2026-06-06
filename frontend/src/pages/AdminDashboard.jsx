@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 import { useToast } from '../context/ToastContext';
+import './AdminDashboard.css';
 import {
   LayoutDashboard, Users, Store, ShoppingBag, Star,
   Trash2, ToggleLeft, ToggleRight, CheckCircle, Clock,
-  MapPin, Mail, RefreshCw
+  MapPin, Mail, RefreshCw, Menu
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip,
@@ -61,6 +62,7 @@ function TableHeader({ cols }) {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [data, setData] = useState({ users: [], restaurants: [], pending: [], orders: [], reviews: [] });
   const [loading, setLoading] = useState(true);
   const toast = useToast();
@@ -200,8 +202,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-container">
+      {/* Sidebar Toggle */}
+      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="sidebar-toggle"><Menu size={24} /></button>
+      
       {/* Sidebar */}
-      <aside className="admin-sidebar">
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-title">⚙ Admin Panel</div>
         {TABS.map(tab => {
           const Icon = tab.icon;
