@@ -8,12 +8,27 @@
 
 .admin-sidebar {
   width: 250px;
-  background: var(--bg-sidebar);
+  background: var(--bg-primary);
+  color: white;
   padding: 24px;
   box-shadow: var(--shadow-sm);
   border-right: 1px solid var(--border);
   overflow-y: auto;
   transition: transform 0.3s ease-in-out;
+}
+
+/* Ensure navigation buttons have appropriate colors on dark sidebar */
+.admin-sidebar .nav-btn {
+  color: white;
+}
+
+.admin-sidebar .nav-btn.active {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.admin-title {
+  color: white;
 }
 
 .admin-sidebar.closed {
