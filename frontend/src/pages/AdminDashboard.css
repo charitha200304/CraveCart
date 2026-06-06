@@ -2,6 +2,7 @@
 
 .admin-container {
   display: flex;
+  position: relative;
   min-height: 100vh;
   background: var(--bg-body);
 }
@@ -19,33 +20,22 @@
 
 /* Ensure navigation buttons have appropriate colors on dark sidebar */
 .admin-sidebar .nav-btn {
-  color: white;
-}
-
-.admin-sidebar .nav-btn.active {
-  background: var(--bg-muted);
   color: var(--text-primary);
 }
 
-.admin-title {
+.admin-sidebar .nav-btn.active {
+  background: var(--bg-primary);
   color: white;
 }
 
-.admin-sidebar.closed {
-  transform: translateX(-100%);
-}
-
-.admin-main {
-  flex: 1;
-  padding: 24px;
-  overflow-x: auto;
-}
-
 .admin-title {
+  color: var(--text-primary);
   font-size: 1.2rem;
   font-weight: 800;
   margin-bottom: 24px;
 }
+
+
 
 .nav-btn {
   width: 100%;
@@ -87,7 +77,7 @@
   display: none;
   position: absolute;
   top: 16px;
-  left: 16px;
+  right: 16px;
   background: var(--bg-primary);
   color: white;
   border: none;
