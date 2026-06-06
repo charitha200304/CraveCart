@@ -13,14 +13,14 @@ import {
 
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'users',     label: 'Users',     icon: Users },
+  { id: 'users', label: 'Users', icon: Users },
   { id: 'restaurants', label: 'Restaurants', icon: Store },
-  { id: 'orders',    label: 'Orders',    icon: ShoppingBag },
-  { id: 'reviews',   label: 'Reviews',   icon: Star },
+  { id: 'orders', label: 'Orders', icon: ShoppingBag },
+  { id: 'reviews', label: 'Reviews', icon: Star },
 ];
 
 const STATUS_COLORS = {
-  PENDING:   { bg: '#FEF3C7', color: '#92400E', hex: '#F59E0B' },
+  PENDING: { bg: '#FEF3C7', color: '#92400E', hex: '#F59E0B' },
   CONFIRMED: { bg: '#DBEAFE', color: '#1E40AF', hex: '#3B82F6' },
   DELIVERED: { bg: '#D1FAE5', color: '#065F46', hex: '#10B981' },
   CANCELLED: { bg: '#FEE2E2', color: '#991B1B', hex: '#EF4444' },
@@ -61,8 +61,8 @@ function TableHeader({ cols }) {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [data, setData]           = useState({ users: [], restaurants: [], pending: [], orders: [], reviews: [] });
-  const [loading, setLoading]     = useState(true);
+  const [data, setData] = useState({ users: [], restaurants: [], pending: [], orders: [], reviews: [] });
+  const [loading, setLoading] = useState(true);
   const toast = useToast();
 
   const fetchAll = useCallback(async () => {
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -168,12 +168,12 @@ export default function AdminDashboard() {
       value: counts[status],
       color: STATUS_COLORS[status]?.hex || '#94A3B8'
     }));
-    // Return empty array if no status data
     if (list.length === 0) {
       return [];
     }
     return list;
   };
+
   // ── Shared UI ──────────────────────────────────────────────
   const cardWrap = {
     background: 'white', borderRadius: 'var(--radius-xl)',
@@ -187,13 +187,16 @@ export default function AdminDashboard() {
     </div>
   );
 
-  if (loading) return (
-    <div style={{ padding: '60px', textAlign: 'center' }}>
-    <div className="loading-container">
-      <div className="spinner" style={{ margin: '0 auto' }} />
-      <p style={{ marginTop: 16, color: 'var(--text-muted)' }}>Loading admin data…</p>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div style={{ padding: '60px', textAlign: 'center' }}>
+        <div className="loading-container">
+          <div className="spinner" style={{ margin: '0 auto' }} />
+          <p style={{ marginTop: 16, color: 'var(--text-muted)' }}>Loading admin data…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-container">
@@ -222,11 +225,11 @@ export default function AdminDashboard() {
           <div>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Welcome back, Admin. Here is your system analysis.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-              <StatCard icon={Users}       label="Total Users"       value={data.users.length}       color="#6366F1" />
-              <StatCard icon={Store}       label="Approved Restaurants" value={data.restaurants.length} color="#F59E0B" />
-              <StatCard icon={Clock}       label="Pending Restaurants" value={data.pending.length}    color="#EF4444" />
-              <StatCard icon={ShoppingBag} label="Total Orders"      value={data.orders.length}      color="#10B981" />
-              <StatCard icon={Star}        label="Total Reviews"     value={data.reviews.length}     color="#EC4899" />
+              <StatCard icon={Users} label="Total Users" value={data.users.length} color="#6366F1" />
+              <StatCard icon={Store} label="Approved Restaurants" value={data.restaurants.length} color="#F59E0B" />
+              <StatCard icon={Clock} label="Pending Restaurants" value={data.pending.length} color="#EF4444" />
+              <StatCard icon={ShoppingBag} label="Total Orders" value={data.orders.length} color="#10B981" />
+              <StatCard icon={Star} label="Total Reviews" value={data.reviews.length} color="#EC4899" />
             </div>
 
             {/* Analysis Charts Section */}
@@ -239,8 +242,8 @@ export default function AdminDashboard() {
                     <AreaChart data={getTrendData()}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={12} />
