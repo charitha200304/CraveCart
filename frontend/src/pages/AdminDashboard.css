@@ -123,6 +123,17 @@
   z-index: 1000;
 }
 
+/* Desktop main layout */
+.admin-main {
+  flex: 1;
+  padding: 24px;
+  margin-left: 250px;
+}
+
+@media (min-width: 769px) {
+  .mobile-header { display: none; }
+}
+
 
 
 .stat-cards-grid {
