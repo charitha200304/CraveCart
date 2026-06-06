@@ -75,43 +75,56 @@
 
 .sidebar-toggle {
   display: none;
-  position: absolute;
-  top: 16px;
-  right: 16px;
+}
+@media (max-width: 768px) {
+  .sidebar-toggle {
+    display: block;
+    position: static;
+    margin: 0;
+    padding: 6px 10px;
+  }
+}
+
+  @media (max-width: 768px) {
+    .admin-container {
+      flex-direction: column;
+    }
+    .admin-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 80%;
+      max-width: 300px;
+      transform: translateX(-100%);
+      z-index: 999;
+    }
+    .admin-sidebar.open {
+      transform: translateX(0);
+    }
+    .sidebar-toggle {
+      display: block;
+    }
+    .admin-main {
+      margin-left: 0;
+      padding-top: 60px; /* space for toggle button */
+    }
+  }
+
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
   background: var(--bg-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 6px 10px;
-  cursor: pointer;
+  color: var(--text-primary);
+  position: sticky;
+  top: 0;
   z-index: 1000;
 }
 
-@media (max-width: 768px) {
-  .admin-container {
-    flex-direction: column;
-  }
-  .admin-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    transform: translateX(-100%);
-    z-index: 999;
-  }
-  .admin-sidebar.open {
-    transform: translateX(0);
-  }
-  .sidebar-toggle {
-    display: block;
-  }
-  .admin-main {
-    margin-left: 0;
-    padding-top: 60px; /* space for toggle button */
-  }
-}
 
-/* Responsive grid for stat cards */
+
 .stat-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

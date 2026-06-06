@@ -202,12 +202,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-container">
-      {/* Sidebar Toggle */}
-      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="sidebar-toggle"><Menu size={24} /></button>
-      
+      <div className="mobile-header">
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="sidebar-toggle"><Menu size={24} /></button>
+      </div>
+
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-title">⚙ Admin Panel</div>
         {TABS.map(tab => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
