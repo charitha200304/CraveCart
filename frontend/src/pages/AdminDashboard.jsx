@@ -343,6 +343,9 @@ export default function AdminDashboard() {
         .adm-stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
         .adm-chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 20px; margin-bottom: 28px; }
         .adm-content { flex: 1; min-width: 0; padding: 32px; overflow-y: auto; }
+        @media (max-width: 1024px) {
+          .adm-chart-grid { grid-template-columns: 1fr; }
+        }
         @media (max-width: 768px) {
           .adm-sidebar-desktop { display: none !important; }
           .adm-topbar { display: flex !important; align-items: center; justify-content: space-between; padding: 0 16px; height: 56px; background: var(--secondary); position: sticky; top: 0; z-index: 300; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
