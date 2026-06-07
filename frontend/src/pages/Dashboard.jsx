@@ -466,7 +466,7 @@ export default function Dashboard() {
                 <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Sales Performance</h3>
                 <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Revenue trends for the last 7 days</p>
               </div>
-              <div style={{ width: '100%', minHeight: '350px', position: 'relative' }}>
+              <div style={{ width: '100%', minHeight: '350px', position: 'relative', minWidth: 0 }}>
                 {hasMounted && (
                   <ResponsiveContainer width="100%" height={300} debounce={1}>
                     <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

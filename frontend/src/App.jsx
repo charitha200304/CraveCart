@@ -82,11 +82,9 @@ export default function App() {
                 </Layout>
               } />
               <Route path="/admin" element={
-                <Layout>
-                  <ProtectedRoute roles={['ADMIN']}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                </Layout>
+                <ProtectedRoute roles={['ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
               } />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

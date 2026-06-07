@@ -407,7 +407,7 @@ export default function AdminDashboard() {
               {/* Charts */}
               <div className="adm-chart-grid">
                 <ChartCard title="Daily Revenue Trend">
-                  <div style={{ width: '100%', height: 280 }}>
+                  <div style={{ width: '100%', height: 280, minWidth: 0, minHeight: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={getTrendData()}>
                         <defs>
@@ -426,7 +426,7 @@ export default function AdminDashboard() {
                 </ChartCard>
 
                 <ChartCard title="Order Status Analysis">
-                  <div style={{ width: '100%', height: 280 }}>
+                  <div style={{ width: '100%', height: 280, minWidth: 0, minHeight: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie data={getStatusData()} cx="50%" cy="45%" innerRadius={60} outerRadius={95} paddingAngle={4} dataKey="value">
