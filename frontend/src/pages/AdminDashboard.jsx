@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Store, ShoppingBag, Star,
   Trash2, ToggleLeft, ToggleRight, CheckCircle, Clock,
-  MapPin, Mail, RefreshCw, Menu, X, TrendingUp
+  MapPin, Mail, RefreshCw, Menu, X, TrendingUp, LogOut
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip,
@@ -154,6 +156,8 @@ export default function AdminDashboard() {
   const [data, setData] = useState({ users: [], restaurants: [], pending: [], orders: [], reviews: [] });
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -318,11 +322,23 @@ export default function AdminDashboard() {
       <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <button
           onClick={fetchAll}
-          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.07)', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500, fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all var(--transition)' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.07)', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 500, fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all var(--transition)', marginBottom: '8px' }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'white'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
         >
           <RefreshCw size={14} /> Refresh Data
+        </button>
+        <button
+          onClick={() => {
+            logout();
+            toast.success('Logged out successfully');
+            navigate('/login');
+          }}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'rgba(239, 68, 68, 0.15)', border: 'none', color: '#FCA5A5', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'all var(--transition)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)'; e.currentTarget.style.color = '#FECACA'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.color = '#FCA5A5'; }}
+        >
+          <LogOut size={14} /> Logout
         </button>
       </div>
     </aside>

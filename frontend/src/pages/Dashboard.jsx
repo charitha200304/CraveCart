@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, Edit3, Trash2, Package, ChefHat, Image, X, 
   DollarSign, TrendingUp, ShoppingBag, List, LayoutDashboard,
-  Moon, Sun, Upload
+  Moon, Sun, Upload, LogOut
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -53,7 +53,7 @@ function ConfirmModal({ title, message, onConfirm, onCancel, loading }) {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const toast = useToast();
   const [tab, setTab] = useState('overview');
   const [restaurant, setRestaurant] = useState(null);
@@ -313,8 +313,25 @@ export default function Dashboard() {
                   borderRadius: '50%', cursor: 'pointer', color: 'var(--text-primary)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
+                title="Toggle Dark Mode"
               >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <button 
+                onClick={() => {
+                  logout();
+                  toast.success('Logged out successfully');
+                  navigate('/login');
+                }}
+                style={{ 
+                  background: '#FEE2E2', border: 'none', padding: '8px', 
+                  borderRadius: '50%', cursor: 'pointer', color: '#EF4444',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginLeft: '8px'
+                }}
+                title="Logout"
+              >
+                <LogOut size={20} />
               </button>
             </div>
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }} className="no-scrollbar">

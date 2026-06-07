@@ -75,11 +75,9 @@ export default function App() {
                 </Layout>
               } />
               <Route path="/dashboard" element={
-                <Layout>
-                  <ProtectedRoute roles={['RESTAURANT_OWNER']}>
-                    <Dashboard />
-                  </ProtectedRoute>
-                </Layout>
+                <ProtectedRoute roles={['RESTAURANT_OWNER']}>
+                  <Dashboard />
+                </ProtectedRoute>
               } />
               <Route path="/admin" element={
                 <ProtectedRoute roles={['ADMIN']}>
