@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, Edit3, Trash2, Package, ChefHat, Image, X, 
   DollarSign, TrendingUp, ShoppingBag, List, LayoutDashboard,
-  Moon, Sun
+  Moon, Sun, Upload
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
