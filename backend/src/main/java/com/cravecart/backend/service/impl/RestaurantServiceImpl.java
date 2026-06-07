@@ -6,6 +6,7 @@ import com.cravecart.backend.entity.User;
 import com.cravecart.backend.repository.RestaurantRepository;
 import com.cravecart.backend.repository.UserRepository;
 import com.cravecart.backend.exception.NotFoundException;
+import com.cravecart.backend.service.RestaurantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
