@@ -166,11 +166,11 @@ export default function AdminDashboard() {
         api.get('/reviews/all'),
       ]);
       setData({
-        users: users.data,
-        restaurants: restaurants.data,
-        pending: pending.data,
-        orders: orders.data,
-        reviews: reviews.data,
+        users: users.data || [],
+        restaurants: restaurants.data || [],
+        pending: pending.data || [],
+        orders: orders.data || [],
+        reviews: reviews.data || [],
       });
     } catch {
       toast.error('Failed to load admin data');
@@ -229,7 +229,7 @@ export default function AdminDashboard() {
   /* ── Chart helpers ───────────────────────────────────── */
   const getTrendData = () => {
     const groups = {};
-    data.orders.forEach(o => {
+    (data.orders || []).forEach(o => {
       if (!o.orderDate) return;
       const d = new Date(o.orderDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       if (!groups[d]) groups[d] = { date: d, revenue: 0, count: 0 };
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
 
   const getStatusData = () => {
     const counts = {};
-    data.orders.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+    (data.orders || []).forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
     return Object.keys(counts).map(status => ({
       name: status, value: counts[status], color: STATUS_COLORS[status]?.hex || '#94A3B8',
     }));
