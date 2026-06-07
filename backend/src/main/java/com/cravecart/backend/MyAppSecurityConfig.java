@@ -36,7 +36,7 @@ public class MyAppSecurityConfig {
                 .cors(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user/**", "/login/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/api/user/**", "/login/**", "/oauth2/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/food/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/restaurants/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()

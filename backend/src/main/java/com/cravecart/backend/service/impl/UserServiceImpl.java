@@ -194,6 +194,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long id) {
+        User user = getUserById(id);
+        if ("RESTAURANT_OWNER".equals(user.getRole())) {
+            restaurantRepository.findByOwnerId(id).ifPresent(restaurantRepository::delete);
+        }
         userRepository.deleteById(id);
     }
 
