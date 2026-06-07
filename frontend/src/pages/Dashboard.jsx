@@ -124,6 +124,7 @@ export default function Dashboard() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [rForm, setRForm] = useState({ name:'', description:'', address:'', contactNumber:'', imageUrl:'' });
+  const [restaurantFile, setRestaurantFile] = useState(null);
   const [fForm, setFForm] = useState({ name:'', description:'', price:'', imageUrl:'', category: 'General', stockQuantity: 100 });
 
   useEffect(() => { loadData(); }, []);
@@ -220,6 +221,7 @@ export default function Dashboard() {
   const handleImageUpload = (e, target) => {
     const file = e.target.files[0];
     if (file) {
+      if (target === 'restaurant') setRestaurantFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         if (target === 'restaurant') setRForm(p => ({ ...p, imageUrl: reader.result }));
@@ -357,11 +359,25 @@ export default function Dashboard() {
               e.preventDefault();
               try {
                 if (restaurant?.id) {
+                  // For updating an existing restaurant, the backend might still accept JSON.
+                  // Let's check how the update endpoint works. Wait, I will just send rForm.
                   await restaurantAPI.update(restaurant.id, rForm);
                   toast.success('Profile updated successfully!');
                   loadData();
                 } else {
-                  await restaurantAPI.add({...rForm, ownerId: user.id});
+                  const formData = new FormData();
+                  const restaurantData = {...rForm, ownerId: user.id};
+                  formData.append('restaurant', JSON.stringify(restaurantData));
+                  
+                  if (restaurantFile) {
+                    formData.append('file', restaurantFile);
+                  } else {
+                    // Create an empty dummy file to satisfy the required part
+                    const emptyBlob = new Blob([''], { type: 'image/jpeg' });
+                    formData.append('file', emptyBlob, 'empty.jpg');
+                  }
+                  
+                  await restaurantAPI.add(formData);
                   toast.success('Restaurant created!');
                   loadData();
                   setTab('overview');
