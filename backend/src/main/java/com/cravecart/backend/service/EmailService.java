@@ -1,21 +1,38 @@
 package com.cravecart.backend.service;
 
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${resend.api.key}")
+    private String apiKey;
+
+    @Value("${resend.sender.email}")
+    private String senderEmail;
+
+    @Value("${resend.sender.name}")
+    private String senderName;
 
     @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationCode) {
-        System.out.println(">> Sending SMTP verification email to: [" + toEmail + "]");
+        System.out.println(">> Sending Resend HTTP verification email to: [" + toEmail + "]");
         
         String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:5173");
         String verifyURL = frontendUrl + "/verify?code=" + verificationCode + "&email=" + toEmail;
@@ -33,7 +50,7 @@ public class EmailService {
 
     @Async
     public void sendPasswordResetEmail(String toEmail, String name, String resetToken) {
-        System.out.println(">> Sending SMTP password reset email to: [" + toEmail + "]");
+        System.out.println(">> Sending Resend HTTP password reset email to: [" + toEmail + "]");
         
         String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:5173");
         String resetURL = frontendUrl + "/reset-password?token=" + resetToken;
@@ -51,7 +68,7 @@ public class EmailService {
 
     @Async
     public void sendOrderReceiptEmail(String toEmail, String name, com.cravecart.backend.entity.Order order) {
-        System.out.println(">> Sending SMTP order receipt email to: [" + toEmail + "]");
+        System.out.println(">> Sending Resend HTTP order receipt email to: [" + toEmail + "]");
 
         StringBuilder itemsHtml = new StringBuilder();
         if (order.getItems() != null) {
@@ -124,19 +141,40 @@ public class EmailService {
         sendHtmlEmail(toEmail, "Your CraveCart Order Receipt #" + order.getId(), htmlContent);
     }
 
-    private void sendHtmlEmail(String to, String subject, String html) {
+    private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(html, true);
-            
-            mailSender.send(message);
-            System.out.println(">> SMTP Email sent successfully to: " + to);
+            if (apiKey == null || apiKey.trim().isEmpty()) {
+                System.err.println(">> Resend API key is not configured. Skipping email send.");
+                return;
+            }
+
+            String url = "https://api.resend.com/emails";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+
+            // Recipient list configuration
+            List<String> toList = new ArrayList<>();
+            toList.add(to);
+
+            // Request body configuration
+            Map<String, Object> body = new HashMap<>();
+            body.put("from", senderName + " <" + senderEmail + ">");
+            body.put("to", toList);
+            body.put("subject", subject);
+            body.put("html", htmlContent);
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println(">> Resend HTTP Email sent successfully to: " + to);
+            } else {
+                System.err.println(">> Failed to send Resend HTTP email. Status: " + response.getStatusCode() + ", Body: " + response.getBody());
+            }
         } catch (Exception e) {
-            System.err.println(">> Failed to send SMTP email: " + e.getMessage());
+            System.err.println(">> Failed to send Resend HTTP email: " + e.getMessage());
             e.printStackTrace();
         }
     }
