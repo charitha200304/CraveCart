@@ -24,6 +24,10 @@ public interface UserService {
      */
     User validateUser(String email, String password);
 
+    // OTP flow methods
+    void sendOtp(String email);
+    boolean verifyOtp(String email, String code);
+
     boolean verify(String verificationCode, String email);
     User verifyAndGetUser(String verificationCode, String email);
     

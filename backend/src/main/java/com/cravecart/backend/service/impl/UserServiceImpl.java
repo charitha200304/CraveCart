@@ -5,6 +5,10 @@ import com.cravecart.backend.entity.User;
 import com.cravecart.backend.repository.UserRepository;
 import com.cravecart.backend.repository.RestaurantRepository;
 import com.cravecart.backend.service.EmailService;
+import com.cravecart.backend.repository.OtpCodeRepository;
+import com.cravecart.backend.entity.OtpCode;
+import java.time.LocalDateTime;
+import java.util.Random;
 import com.cravecart.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,9 +26,20 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final RestaurantRepository restaurantRepository;
+    private final OtpCodeRepository otpCodeRepository;
 
     @Override
     public void registerUser(UserRegistrationDTO registrationDTO) {
+        // For restaurant owners, ensure OTP has been verified before proceeding
+        if ("RESTAURANT_OWNER".equals(registrationDTO.getRole())) {
+            OtpCode otp = otpCodeRepository.findById(registrationDTO.getEmail()).orElse(null);
+            if (otp == null || !Boolean.TRUE.equals(otp.getVerified())) {
+                throw new RuntimeException("Email not verified via OTP. Please verify before registering.");
+            }
+            // OTP verified; remove it after use
+            otpCodeRepository.delete(otp);
+        }
+
         String randomCode = UUID.randomUUID().toString();
         
         User user = User.builder()
@@ -163,8 +178,6 @@ public class UserServiceImpl implements UserService {
 
             emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), token);
         } else {
-            // We throw a generic exception or do nothing to prevent email enumeration,
-            // but for UX, sometimes it's okay to throw if needed. Let's throw for now.
             throw new RuntimeException("User not found with this email");
         }
     }
@@ -185,6 +198,33 @@ public class UserServiceImpl implements UserService {
         user.setResetPasswordToken(null);
         user.setResetPasswordTokenExpiry(null);
         userRepository.save(user);
+    }
+
+    // OTP flow methods
+    @Override
+    public void sendOtp(String email) {
+        // Generate a 6-digit numeric OTP
+        String otpCode = String.format("%06d", new Random().nextInt(1_000_000));
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(5);
+        OtpCode otp = OtpCode.builder()
+                .email(email)
+                .code(otpCode)
+                .expiryTime(expiry)
+                .verified(false)
+                .build();
+        otpCodeRepository.save(otp);
+        emailService.sendVerificationOtpEmail(email, otpCode);
+    }
+
+    @Override
+    public boolean verifyOtp(String email, String code) {
+        OtpCode otp = otpCodeRepository.findById(email).orElse(null);
+        if (otp != null && otp.getCode().equals(code) && otp.getExpiryTime().isAfter(LocalDateTime.now())) {
+            otp.setVerified(true);
+            otpCodeRepository.save(otp);
+            return true;
+        }
+        return false;
     }
 
     @Override

@@ -10,7 +10,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,18 +23,21 @@ public class EmailService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${resend.api.key}")
+    @Value("${mailjet.api.key}")
     private String apiKey;
 
-    @Value("${resend.sender.email}")
+    @Value("${mailjet.secret.key}")
+    private String secretKey;
+
+    @Value("${mailjet.sender.email}")
     private String senderEmail;
 
-    @Value("${resend.sender.name}")
+    @Value("${mailjet.sender.name}")
     private String senderName;
 
     @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationCode) {
-        System.out.println(">> Sending Resend HTTP verification email to: [" + toEmail + "]");
+        System.out.println(">> Sending Mailjet HTTP verification email to: [" + toEmail + "]");
         
         String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:5173");
         String verifyURL = frontendUrl + "/verify?code=" + verificationCode + "&email=" + toEmail;
@@ -49,8 +54,24 @@ public class EmailService {
     }
 
     @Async
+    public void sendVerificationOtpEmail(String toEmail, String otpCode) {
+        System.out.println(">> Sending Mailjet HTTP registration OTP to: [" + toEmail + "]");
+
+        String htmlContent = String.format(
+            "<h3>CraveCart Registration OTP</h3>" +
+            "<p>Your email verification code is:</p>" +
+            "<h2><strong>%s</strong></h2>" +
+            "<p>This code is valid for 5 minutes. Please do not share it with anyone.</p>" +
+            "<p>Thank you,<br>The CraveCart Team</p>", 
+            otpCode
+        );
+
+        sendHtmlEmail(toEmail, "Your Email Verification Code - CraveCart", htmlContent);
+    }
+
+    @Async
     public void sendPasswordResetEmail(String toEmail, String name, String resetToken) {
-        System.out.println(">> Sending Resend HTTP password reset email to: [" + toEmail + "]");
+        System.out.println(">> Sending Mailjet HTTP password reset email to: [" + toEmail + "]");
         
         String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:5173");
         String resetURL = frontendUrl + "/reset-password?token=" + resetToken;
@@ -68,7 +89,7 @@ public class EmailService {
 
     @Async
     public void sendOrderReceiptEmail(String toEmail, String name, com.cravecart.backend.entity.Order order) {
-        System.out.println(">> Sending Resend HTTP order receipt email to: [" + toEmail + "]");
+        System.out.println(">> Sending Mailjet HTTP order receipt email to: [" + toEmail + "]");
 
         StringBuilder itemsHtml = new StringBuilder();
         if (order.getItems() != null) {
@@ -143,38 +164,59 @@ public class EmailService {
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
-            if (apiKey == null || apiKey.trim().isEmpty()) {
-                System.err.println(">> Resend API key is not configured. Skipping email send.");
+            if (apiKey == null || apiKey.trim().isEmpty() || secretKey == null || secretKey.trim().isEmpty()) {
+                System.err.println(">> Mailjet credentials are not configured. Skipping email send.");
                 return;
             }
 
-            String url = "https://api.resend.com/emails";
+            String url = "https://api.mailjet.com/v3.1/send";
+
+            // Set Basic Auth header: Base64(apiKey:secretKey)
+            String auth = apiKey + ":" + secretKey;
+            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.US_ASCII));
+            String authHeader = "Basic " + new String(encodedAuth);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + apiKey);
+            headers.set("Authorization", authHeader);
+            headers.set("Accept", "application/json");
 
-            // Recipient list configuration
-            List<String> toList = new ArrayList<>();
-            toList.add(to);
+            // Sender mapping
+            Map<String, String> sender = new HashMap<>();
+            sender.put("Email", senderEmail);
+            sender.put("Name", senderName);
 
-            // Request body configuration
+            // Recipient mapping
+            Map<String, String> recipient = new HashMap<>();
+            recipient.put("Email", to);
+            recipient.put("Name", "User");
+            List<Map<String, String>> toList = new ArrayList<>();
+            toList.add(recipient);
+
+            // Single message configuration
+            Map<String, Object> messageMap = new HashMap<>();
+            messageMap.put("From", sender);
+            messageMap.put("To", toList);
+            messageMap.put("Subject", subject);
+            messageMap.put("HTMLPart", htmlContent);
+
+            // Messages array wrapper
+            List<Map<String, Object>> messagesList = new ArrayList<>();
+            messagesList.add(messageMap);
+
             Map<String, Object> body = new HashMap<>();
-            body.put("from", senderName + " <" + senderEmail + ">");
-            body.put("to", toList);
-            body.put("subject", subject);
-            body.put("html", htmlContent);
+            body.put("Messages", messagesList);
 
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
-                System.out.println(">> Resend HTTP Email sent successfully to: " + to);
+                System.out.println(">> Mailjet HTTP Email sent successfully to: " + to);
             } else {
-                System.err.println(">> Failed to send Resend HTTP email. Status: " + response.getStatusCode() + ", Body: " + response.getBody());
+                System.err.println(">> Failed to send Mailjet HTTP email. Status: " + response.getStatusCode() + ", Body: " + response.getBody());
             }
         } catch (Exception e) {
-            System.err.println(">> Failed to send Resend HTTP email: " + e.getMessage());
+            System.err.println(">> Failed to send Mailjet HTTP email: " + e.getMessage());
             e.printStackTrace();
         }
     }
