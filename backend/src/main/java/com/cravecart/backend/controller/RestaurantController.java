@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -35,6 +36,13 @@ public class RestaurantController {
         String imageUrl = imageUploadService.uploadImage(file);
         dto.setImageUrl(imageUrl);
 
+        return ResponseEntity.status(HttpStatus.CREATED).body(restaurantService.addRestaurant(dto));
+    }
+
+    // New JSON registration endpoint (no image upload)
+    @PostMapping("/register")
+    public ResponseEntity<RestaurantDTO> registerRestaurant(@Valid @RequestBody RestaurantDTO dto) {
+        // OwnerId should be set from authenticated principal; here we trust the DTO contains ownerId.
         return ResponseEntity.status(HttpStatus.CREATED).body(restaurantService.addRestaurant(dto));
     }
 
