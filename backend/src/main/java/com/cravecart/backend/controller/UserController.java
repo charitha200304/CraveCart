@@ -99,29 +99,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        User authenticatedUser = userService.validateUser(loginRequest.getEmail(), loginRequest.getPassword());
 
-        if (authenticatedUser != null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(authenticatedUser.getEmail());
-            // Pass rememberMe flag: true = 30-day token, false = 24-hour token
-            String token = jwtService.generateToken(userDetails, loginRequest.isRememberMe());
-
-            AuthResponse response = AuthResponse.builder()
-                    .id(authenticatedUser.getId())
-                    .token(token)
-                    .email(authenticatedUser.getEmail())
-                    .role(authenticatedUser.getRole())
-                    .name(authenticatedUser.getName())
-                    .build();
-
-            return ResponseEntity.ok(response);
-        } else {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", "Invalid Email or Password!");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-        }
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
