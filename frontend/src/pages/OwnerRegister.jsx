@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, Eye, EyeOff, ChefHat, Store, Upload } from 'lucide-react';
-import { authAPI } from '../utils/api';
+import { authAPI, restaurantAPI } from '../utils/api';
 import { useToast } from '../context/ToastContext';
 import FormField from '../components/FormField';
 import { validateEmail, validatePhone, validatePassword, validateName } from '../utils/validation';
@@ -22,6 +22,8 @@ export default function OwnerRegister() {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState('FORM');
+  const [otpCode, setOtpCode] = useState('');
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -63,20 +65,52 @@ export default function OwnerRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    
+
     setLoading(true);
     try {
-      await authAPI.register({ ...form, username: form.email, phoneNumber: form.phone });
-      setIsSuccess(true);
-      toast.success('Registration successful! Please check your email.');
+      await authAPI.sendOtp(form.email);
+      toast.success('OTP sent to your email. Please enter it below.');
+      setRegistrationStep('OTP');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Registration failed');
+      toast.error(err.response?.data?.error || 'Failed to send OTP');
     } finally {
       setLoading(false);
     }
   };
 
-  if (isSuccess) {
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await authAPI.register({ ...form, username: form.email, phoneNumber: form.phone, otp: otpCode });
+      setIsSuccess(true);
+      setRegistrationStep('SUCCESS');
+      toast.success('Registration successful! Please check your email.');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (registrationStep === 'OTP') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FFF5F2 0%, #FAFAFA 100%)', padding: '24px' }}>
+        <div style={{ width: '100%', maxWidth: '400px', background: 'white', padding: '32px', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-lg)' }}>
+          <h2 style={{ marginBottom: '16px' }}>Enter OTP</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Please enter the 6-digit code sent to {form.email}</p>
+          <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <input className="input" type="text" maxLength={6} placeholder="Enter OTP" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} required />
+            <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
+              {loading ? 'Verifying...' : 'Verify & Register'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (registrationStep === 'SUCCESS') {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #FFF5F2 0%, #FAFAFA 100%)', padding: '24px' }}>
         <div style={{ width: '100%', maxWidth: '480px', textAlign: 'center' }}>
