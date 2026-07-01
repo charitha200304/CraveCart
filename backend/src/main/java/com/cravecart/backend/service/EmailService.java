@@ -2,37 +2,24 @@ package com.cravecart.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import javax.mail.internet.MimeMessage;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final JavaMailSender mailSender;
 
-    @Value("${mailjet.api.key}")
-    private String apiKey;
+    // Mailjet API credentials removed – Gmail SMTP will be used via JavaMailSender
 
-    @Value("${mailjet.secret.key}")
-    private String secretKey;
-
-    @Value("${mailjet.sender.email}")
+    @Value("${spring.mail.username}")
     private String senderEmail;
 
-    @Value("${mailjet.sender.name}")
+    @Value("${mailjet.sender.name:CraveCart}")
     private String senderName;
 
     @Async
@@ -164,60 +151,18 @@ public class EmailService {
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
-            if (apiKey == null || apiKey.trim().isEmpty() || secretKey == null || secretKey.trim().isEmpty()) {
-                System.err.println(">> Mailjet credentials are not configured. Skipping email send.");
-                return;
-            }
-
-            String url = "https://api.mailjet.com/v3.1/send";
-
-            // Set Basic Auth header: Base64(apiKey:secretKey)
-            String auth = apiKey + ":" + secretKey;
-            byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.US_ASCII));
-            String authHeader = "Basic " + new String(encodedAuth);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", authHeader);
-            headers.set("Accept", "application/json");
-
-            // Sender mapping
-            Map<String, String> sender = new HashMap<>();
-            sender.put("Email", senderEmail);
-            sender.put("Name", senderName);
-
-            // Recipient mapping
-            Map<String, String> recipient = new HashMap<>();
-            recipient.put("Email", to);
-            recipient.put("Name", "User");
-            List<Map<String, String>> toList = new ArrayList<>();
-            toList.add(recipient);
-
-            // Single message configuration
-            Map<String, Object> messageMap = new HashMap<>();
-            messageMap.put("From", sender);
-            messageMap.put("To", toList);
-            messageMap.put("Subject", subject);
-            messageMap.put("HTMLPart", htmlContent);
-
-            // Messages array wrapper
-            List<Map<String, Object>> messagesList = new ArrayList<>();
-            messagesList.add(messageMap);
-
-            Map<String, Object> body = new HashMap<>();
-            body.put("Messages", messagesList);
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                System.out.println(">> Mailjet HTTP Email sent successfully to: " + to);
-            } else {
-                System.err.println(">> Failed to send Mailjet HTTP email. Status: " + response.getStatusCode() + ", Body: " + response.getBody());
-            }
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(senderEmail, senderName);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            System.out.println(">> Gmail SMTP email sent to: [" + to + "]");
         } catch (Exception e) {
-            System.err.println(">> Failed to send Mailjet HTTP email: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println(">> Failed to send email via Gmail SMTP: " + e.getMessage());
         }
     }
+
+
 }
