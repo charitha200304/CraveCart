@@ -24,7 +24,7 @@ public class EmailService {
 
     @Async
     public void sendVerificationEmail(String toEmail, String name, String verificationCode) {
-        System.out.println(">> Sending Mailjet HTTP verification email to: [" + toEmail + "]");
+        System.out.println(">> Sending Gmail SMTP verification email to: [" + toEmail + "]");
         
         String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:5173");
         String verifyURL = frontendUrl + "/verify?code=" + verificationCode + "&email=" + toEmail;
@@ -149,6 +149,9 @@ public class EmailService {
         sendHtmlEmail(toEmail, "Your CraveCart Order Receipt #" + order.getId(), htmlContent);
     }
 
+    /**
+     * Sends a generic HTML email.
+     */
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -162,6 +165,26 @@ public class EmailService {
         } catch (Exception e) {
             System.err.println(">> Failed to send email via Gmail SMTP: " + e.getMessage());
         }
+    }
+
+    /**
+     * Sends a friendly welcome email to a newly registered customer.
+     */
+    @Async
+    public void sendWelcomeEmail(String toEmail, String name) {
+        String subject = "Welcome to CraveCart! 🎉";
+        String htmlContent = String.format(
+                "<div style='font-family:Arial,Helvetica,sans-serif; max-width:600px; margin:auto; padding:20px; background:#f9f9f9; border-radius:8px;'>"
+                        + "<h2 style='color:#E23744;'>Welcome, %s!</h2>"
+                        + "<p>Thank you for joining CraveCart. We're thrilled to have you with us.</p>"
+                        + "<p>Explore delicious meals, place orders, and enjoy a seamless food experience.</p>"
+                        + "<a href='%s' style='display:inline-block; margin-top:10px; padding:10px 20px; background:#E23744; color:#fff; text-decoration:none; border-radius:4px;'>Visit Our Site</a>"
+                        + "<p style='margin-top:20px; font-size:0.9em; color:#666;'>Happy dining!<br/>The CraveCart Team</p>"
+                        + "</div>",
+                name,
+                System.getenv().getOrDefault("FRONTEND_URL", "https://crave-cart-delta.vercel.app")
+        );
+        sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
 

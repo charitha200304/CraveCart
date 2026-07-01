@@ -67,6 +67,10 @@ public class UserServiceImpl implements UserService {
 
         try {
             emailService.sendVerificationEmail(user.getEmail(), user.getName(), randomCode);
+            // Send a warm welcome email to customers
+            if (registrationDTO.getRole().equals("CUSTOMER")) {
+                emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
